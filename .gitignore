@@ -1,0 +1,10 @@
+# vscode
+.vscode/
+
+# executables
+*.exe
+*.out
+
+# temporary files
+temp/
+temp.*
