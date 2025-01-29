@@ -50,7 +50,7 @@ int main() {
     }
 
     // Open file to write received data
-    std::ofstream outfile("received_file.txt", std::ios::binary);
+    std::ofstream outfile("../data/received_file.txt", std::ios::binary);
     if (!outfile) {
         std::cerr << "Failed to create file for writing" << std::endl;
         close(new_socket);

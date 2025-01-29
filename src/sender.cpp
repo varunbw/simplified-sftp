@@ -5,53 +5,76 @@
 #include <arpa/inet.h>
 #include <unistd.h>
 
-const char* SERVER_IP = "127.0.0.1"; // Server IP
-const int PORT = 8080;
+class FileSender {
+private:
+    int sock;
+    struct sockaddr_in serv_addr;
+    std::string server_ip;
+    int port;
+
+public:
+    FileSender(const std::string& ip, int port) : server_ip(ip), port(port), sock(-1) {}
+
+    bool ConnectToServer() {
+        sock = socket(AF_INET, SOCK_STREAM, 0);
+        if (sock < 0) {
+            std::cerr << "Socket creation error\n";
+            return false;
+        }
+
+        serv_addr.sin_family = AF_INET;
+        serv_addr.sin_port = htons(port);
+
+        if (inet_pton(AF_INET, server_ip.c_str(), &serv_addr.sin_addr) <= 0) {
+            std::cerr << "Invalid address/Address not supported\n";
+            return false;
+        }
+
+        if (connect(sock, (struct sockaddr*)&serv_addr, sizeof(serv_addr)) < 0) {
+            std::cerr << "Connection failed\n";
+            return false;
+        }
+
+        return true;
+    }
+
+    bool SendFile(const std::string& filename) {
+        std::ifstream infile(filename, std::ios::binary);
+        if (!infile) {
+            std::cerr << "Failed to open file '" << filename << "'\n";
+            return false;
+        }
+
+        char buffer[1024];
+        while (infile.read(buffer, sizeof(buffer)) || infile.gcount() > 0) {
+            if (send(sock, buffer, infile.gcount(), 0) < 0) {
+                std::cerr << "Error sending file\n";
+                return false;
+            }
+        }
+
+        std::cout << "File sent successfully!\n";
+        return true;
+    }
+
+    void CloseConnection() {
+        if (sock != -1) {
+            close(sock);
+            sock = -1;
+        }
+    }
+
+    ~FileSender() {
+        CloseConnection();
+    }
+};
+
 
 int main() {
-    int sock = 0;
-    struct sockaddr_in serv_addr;
+    FileSender sender("127.0.0.1", 8080);
 
-    // Create socket
-    if ((sock = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
-        std::cerr << "Socket creation error" << std::endl;
-        return 1;
-    }
-
-    serv_addr.sin_family = AF_INET;
-    serv_addr.sin_port = htons(PORT);
-
-    // Convert IPv4 and IPv6 addresses from text to binary form
-    if (inet_pton(AF_INET, SERVER_IP, &serv_addr.sin_addr) <= 0) {
-        std::cerr << "Invalid address/Address not supported" << std::endl;
-        return 1;
-    }
-
-    // Connect to the server
-    if (connect(sock, (struct sockaddr*)&serv_addr, sizeof(serv_addr)) < 0) {
-        std::cerr << "Connection failed" << std::endl;
-        return 1;
-    }
-
-    // Open the file to send
-    std::ifstream infile("file_to_send.txt", std::ios::binary);
-    if (!infile) {
-        std::cerr << "Failed to open file 'file_to_send.txt'" << std::endl;
-        close(sock);
-        return 1;
-    }
-
-    char buffer[1024];
-    while (infile.read(buffer, sizeof(buffer)) || infile.gcount() > 0) {
-        // Send file contents to the server
-        send(sock, buffer, infile.gcount(), 0);
-    }
-
-    std::cout << "File sent successfully!" << std::endl;
-
-    // Clean up
-    infile.close();
-    close(sock);
+    if (!sender.ConnectToServer()) return 1;
+    if (!sender.SendFile("../data/file_to_send.txt")) return 1;
 
     return 0;
 }
