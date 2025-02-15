@@ -75,25 +75,24 @@ public:
 
         // Encrypt the file contents
         // encryptedData holds the key, IV, and encrypted content
-        Crypto::EncryptedData encryptedData = Crypto::EncryptFileContents(infile);
-        if (encryptedData.key.empty() || encryptedData.iv.empty() || encryptedData.content.empty()) {
+        std::vector<unsigned char> encryptedData = Crypto::EncryptFileContents(infile);
+        if (encryptedData.empty()) {
             std::cerr << "[ERROR] FileSender::SendFile(): Error encrypting file\n";
             return false;
         }
 
         // Send the encrypted file contents to the server in 1024 byte chunks
-        size_t totalSize = encryptedData.content.size();
+        size_t totalSize = encryptedData.size();
         size_t sentSize = 0;
         while (sentSize < totalSize) {
             size_t chunkSize = std::min(static_cast<size_t>(1024), totalSize - sentSize);
-            if (send(socketFD, encryptedData.content.data() + sentSize, chunkSize, 0) < 0) {
+            if (send(socketFD, encryptedData.data() + sentSize, chunkSize, 0) < 0) {
                 std::cerr << "[ERROR] FileSender::SendFile(): Error sending encrypted file\n";
                 return false;
             }
             sentSize += chunkSize;
         }
 
-        // std::cout << "[INFO] FileSender::SendFile(): File sent successfully!\n";
         std::cout << std::format("[INFO] FileSender::SendFile(): File {} sent successfully!\n", filename);
         return true;
     }
