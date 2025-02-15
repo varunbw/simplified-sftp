@@ -6,6 +6,8 @@
 #include <netinet/in.h>
 #include <unistd.h>
 
+#include "../include/crypto.hpp"
+
 class FileReceiver {
 private:
     // Socket FD for the sender (client)
@@ -86,26 +88,33 @@ public:
     */
     bool ReceiveFile(const std::string& filename) {
         
-        // Open file to write received data
-        std::ofstream outfile(filename, std::ios::binary);
-
-        if (!outfile) {
-            std::cerr << "[ERROR] FileReceiver::ReceiveFile(): Failed to create file '" << filename << "'\n";
-            close(clientSocket);
-            return false;
-        }
-
+        std::vector<unsigned char> encryptedContent;
+        std::vector<unsigned char> decryptedContent;
         std::string buffer(1024, '\0');
         int bytesRead;
 
-        // Read data from client and write to file
+        // Read data from client and store in vector
         while ((bytesRead = read(clientSocket, &buffer[0], buffer.size())) > 0) {
-            outfile.write(buffer.c_str(), bytesRead);
+            encryptedContent.insert(encryptedContent.end(), buffer.begin(), buffer.begin() + bytesRead);
         }
 
-        std::cout << std::format("[INFO] FileSender::SendFile(): File saved as {} successfully!\n", filename);
+        // Decrypt the content
+        if (Crypto::DecryptFileContents(encryptedContent, decryptedContent) == false) {
+            std::cerr << "[ERROR] FileReceiver::ReceiveFile(): Decryption failed\n";
+            return false;
+        }
 
+        // Write decrypted content to file
+        std::ofstream outfile(filename, std::ios::binary);
+        if (!outfile) {
+            std::cerr << "[ERROR] FileReceiver::ReceiveFile(): Failed to create file '" << filename << "'\n";
+            return false;
+        }
+
+        outfile.write(reinterpret_cast<const char*>(decryptedContent.data()), decryptedContent.size());
         outfile.close();
+
+        std::cout << std::format("[INFO] FileReceiver::ReceiveFile(): File saved as {} successfully!\n", filename);
         return true;
     }
 

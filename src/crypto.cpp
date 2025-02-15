@@ -55,35 +55,43 @@ namespace Crypto {
         const std::vector<unsigned char>& iv
     );
 
-    EncryptedData EncryptFileContents(std::ifstream& infile);
+    std::vector<unsigned char> EncryptFileContents(std::ifstream& infile);
 
     /*
         Encrypts the contents of a file using AES-256 in CBC mode
         @param infile: the input file stream
         @return the encrypted data
     */
-    EncryptedData EncryptFileContents(std::ifstream& infile) {
-        
-        // Generate random key and IV
-        std::vector<unsigned char> key(32); // 256-bit key
-        std::vector<unsigned char> iv(16);  // 128-bit IV
-        RAND_bytes(key.data(), key.size());
-        RAND_bytes(iv.data(), iv.size());
+    std::vector<unsigned char> EncryptFileContents(std::ifstream& infile) {
         
         // Read file contents into a vector
         std::vector<unsigned char> fileContents((std::istreambuf_iterator<char>(infile)), std::istreambuf_iterator<char>());
         
         // Encrypt the file contents
         std::vector<unsigned char> encryptedContents;
-        if (!EncryptData(fileContents, encryptedContents, key, iv)) {
+        if (!EncryptData(fileContents, encryptedContents, preSharedKey, preSharedIV)) {
             std::cerr << "[ERROR] Crypto::EncryptFileContents(): Error encrypting file\n";
-            return EncryptedData();
+            return {};
         }
         
-        return {key, iv, encryptedContents};
+        return encryptedContents;
     }
 
-    
+    /*
+        Decrypts the contents of a file using AES-256 in CBC mode
+        @param infile: the input file stream
+    */
+    bool DecryptFileContents(std::vector<unsigned char>& encryptedContent, std::vector<unsigned char>& decryptedContent) {
+        
+        // Decrypt the file contents
+        if (DecryptData(encryptedContent, decryptedContent, preSharedKey, preSharedIV) == false) {
+            std::cerr << "[ERROR] Crypto::DecryptFileContents(): Error decrypting file\n";
+            return false;
+        }
+
+        return true;
+    }
+
     
     /*
         Encrypts the plaintext using AES-256 in CBC mode
@@ -106,8 +114,9 @@ namespace Crypto {
         return false;
         
         // Initialize the encryption operation with a cipher type, key, and IV
-        bool initStatus = EVP_EncryptInit_ex(ctx, EVP_aes_256_cbc(), NULL, key.data(), iv.data());
+        int initStatus = EVP_EncryptInit_ex(ctx, EVP_aes_256_cbc(), NULL, key.data(), iv.data());
         if (initStatus != 1) {
+            std::cerr << "[ERROR] Crypto::EncryptData(): Error initializing encryption operation\n";
             EVP_CIPHER_CTX_free(ctx);
             return false;
         }
@@ -117,16 +126,18 @@ namespace Crypto {
         
         // Encrypt the plaintext
         int len;
-        bool encryptionStatus = EVP_EncryptUpdate(ctx, ciphertext.data(), &len, plaintext.data(), plaintext.size());
+        int encryptionStatus = EVP_EncryptUpdate(ctx, ciphertext.data(), &len, plaintext.data(), plaintext.size());
         if (encryptionStatus != 1) {
+            std::cerr << "[ERROR] Crypto::EncryptData(): Error encrypting data\n";
             EVP_CIPHER_CTX_free(ctx);
             return false;
         }
         
         // Encrypts the "final" data; any data that remains in a partial block. It also writes out the padding.
         int ciphertextLen = len;
-        bool finalEncryptionStatus = EVP_EncryptFinal_ex(ctx, ciphertext.data() + len, &len);
+        int finalEncryptionStatus = EVP_EncryptFinal_ex(ctx, ciphertext.data() + len, &len);
         if (finalEncryptionStatus != 1) {
+            std::cerr << "[ERROR] Crypto::EncryptData(): Error encrypting final data\n";
             EVP_CIPHER_CTX_free(ctx);
             return false;
         }
@@ -157,29 +168,39 @@ namespace Crypto {
         
         // Create a new context
         EVP_CIPHER_CTX* ctx = EVP_CIPHER_CTX_new();
-        if (!ctx) return false;
+        if (!ctx) {
+            std::cerr << "[ERROR] Crypto::DecryptData(): Error creating cipher context\n";
+            return false;
+        }
         
         // Initialize the decryption operation with a cipher type, key, and IV
-        bool initStatus = EVP_DecryptInit_ex(ctx, EVP_aes_256_cbc(), NULL, key.data(), iv.data());
+        int initStatus = EVP_DecryptInit_ex(ctx, EVP_aes_256_cbc(), NULL, key.data(), iv.data());
         if (initStatus != 1) {
+            std::cerr << "[ERROR] Crypto::DecryptData(): Error initializing decryption operation\n";
             EVP_CIPHER_CTX_free(ctx);
             return false;
         }
         
         // Resize the plaintext vector to accommodate the decrypted data
         plaintext.resize(ciphertext.size());
+        std::cout << "Ciphertext size: " << ciphertext.size() << std::endl;
+        std::cout << "Plaintext size: " << plaintext.size() << std::endl;
         
         // Decrypt the ciphertext
         int len;
-        bool decryptionStatus = EVP_DecryptUpdate(ctx, plaintext.data(), &len, ciphertext.data(), ciphertext.size());
+        int decryptionStatus = EVP_DecryptUpdate(ctx, plaintext.data(), &len, ciphertext.data(), ciphertext.size());
         if (decryptionStatus != 1) {
+            std::cerr << "[ERROR] Crypto::DecryptData(): Error decrypting data\n";
             EVP_CIPHER_CTX_free(ctx);
             return false;
         }
+
         
         int plaintextLen = len;
         // Decrypts the "final" data; any data that remains in a partial block. It also writes out the padding.
-        if (EVP_DecryptFinal_ex(ctx, plaintext.data() + len, &len) != 1) {
+        int finalDecryptionStatus = EVP_DecryptFinal_ex(ctx, plaintext.data() + len, &len);
+        if (finalDecryptionStatus != 1) {
+            std::cerr << "[ERROR] Crypto::DecryptData(): Error decrypting final data\n";
             EVP_CIPHER_CTX_free(ctx);
             return false;
         }
