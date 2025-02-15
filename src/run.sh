@@ -10,7 +10,7 @@ SOURCE_FILE="$1.cpp"
 OUTPUT_FILE="$1"
 
 # Base compile command
-COMPILE_CMD="g++ -g $SOURCE_FILE -o $OUTPUT_FILE -std=c++23 -fsanitize=address"
+COMPILE_CMD="g++ -g $SOURCE_FILE -o $OUTPUT_FILE -std=c++23 -fsanitize=address -lssl -lcrypto"
 
 # Compile the source file
 echo "Compiling with command: $COMPILE_CMD"
