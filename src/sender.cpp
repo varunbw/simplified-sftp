@@ -5,6 +5,7 @@
 #include <sys/socket.h>
 #include <arpa/inet.h>
 #include <unistd.h>
+#include "../include/crypto.hpp"
 
 class FileSender {
 private:
@@ -72,13 +73,24 @@ public:
             return false;
         }
 
-        // Read file in chunks and send it to the server
-        std::string buffer(1024, '\0');
-        while (infile.read(&buffer[0], buffer.size()) || infile.gcount() > 0) {
-            if (send(socketFD, buffer.c_str(), infile.gcount(), 0) < 0) {
-                std::cerr << "[ERROR] FileSender::SendFile(): Error sending file\n";
+        // Encrypt the file contents
+        // encryptedData holds the key, IV, and encrypted content
+        Crypto::EncryptedData encryptedData = Crypto::EncryptFileContents(infile);
+        if (encryptedData.key.empty() || encryptedData.iv.empty() || encryptedData.content.empty()) {
+            std::cerr << "[ERROR] FileSender::SendFile(): Error encrypting file\n";
+            return false;
+        }
+
+        // Send the encrypted file contents to the server in 1024 byte chunks
+        size_t totalSize = encryptedData.content.size();
+        size_t sentSize = 0;
+        while (sentSize < totalSize) {
+            size_t chunkSize = std::min(static_cast<size_t>(1024), totalSize - sentSize);
+            if (send(socketFD, encryptedData.content.data() + sentSize, chunkSize, 0) < 0) {
+                std::cerr << "[ERROR] FileSender::SendFile(): Error sending encrypted file\n";
                 return false;
             }
+            sentSize += chunkSize;
         }
 
         // std::cout << "[INFO] FileSender::SendFile(): File sent successfully!\n";
