@@ -55,44 +55,6 @@ namespace Crypto {
         const std::vector<unsigned char>& iv
     );
 
-    std::vector<unsigned char> EncryptFileContents(std::ifstream& infile);
-
-    /*
-        Encrypts the contents of a file using AES-256 in CBC mode
-        @param infile: the input file stream
-        @return the encrypted data
-    */
-    std::vector<unsigned char> EncryptFileContents(std::ifstream& infile) {
-        
-        // Read file contents into a vector
-        std::vector<unsigned char> fileContents((std::istreambuf_iterator<char>(infile)), std::istreambuf_iterator<char>());
-        
-        // Encrypt the file contents
-        std::vector<unsigned char> encryptedContents;
-        if (!EncryptData(fileContents, encryptedContents, preSharedKey, preSharedIV)) {
-            std::cerr << "[ERROR] Crypto::EncryptFileContents(): Error encrypting file\n";
-            return {};
-        }
-        
-        return encryptedContents;
-    }
-
-    /*
-        Decrypts the contents of a file using AES-256 in CBC mode
-        @param infile: the input file stream
-    */
-    bool DecryptFileContents(std::vector<unsigned char>& encryptedContent, std::vector<unsigned char>& decryptedContent) {
-        
-        // Decrypt the file contents
-        if (DecryptData(encryptedContent, decryptedContent, preSharedKey, preSharedIV) == false) {
-            std::cerr << "[ERROR] Crypto::DecryptFileContents(): Error decrypting file\n";
-            return false;
-        }
-
-        return true;
-    }
-
-    
     /*
         Encrypts the plaintext using AES-256 in CBC mode
         @param plaintext: the plaintext to be encrypted
@@ -212,36 +174,4 @@ namespace Crypto {
         EVP_CIPHER_CTX_free(ctx);
         return true;
     }
-    
-    /*
-        int main() {
-            std::vector<unsigned char> key(32); // 256-bit key
-            std::vector<unsigned char> iv(16);  // 128-bit IV
-            
-            // Generate random key and IV
-            RAND_bytes(key.data(), key.size());
-            RAND_bytes(iv.data(), iv.size());
-            
-            std::string plaintext = "Hello, OpenSSL!";
-            std::vector<unsigned char> plaintext_vec(plaintext.begin(), plaintext.end());
-            std::vector<unsigned char> ciphertext;
-            std::vector<unsigned char> decryptedtext;
-            
-            if (EncryptData(plaintext_vec, ciphertext, key, iv)) {
-                std::cout << "Encryption successful!" << std::endl;
-            } else {
-                std::cerr << "Encryption failed!" << std::endl;
-            }
-            
-            if (DecryptData(ciphertext, decryptedtext, key, iv)) {
-                std::cout << "Decryption successful!" << std::endl;
-                std::string decrypted_str(decryptedtext.begin(), decryptedtext.end());
-                std::cout << "Decrypted text: " << decrypted_str << std::endl;
-            } else {
-                std::cerr << "Decryption failed!" << std::endl;
-            }
-            
-            return 0;
-        }
-    */
 };

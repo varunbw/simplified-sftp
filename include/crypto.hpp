@@ -23,8 +23,19 @@ namespace Crypto {
         0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f
     };
 
-    std::vector<unsigned char> EncryptFileContents(std::ifstream& infile);
-    bool DecryptFileContents(std::vector<unsigned char>& encryptedContent, std::vector<unsigned char>& decryptedContent);
+    bool EncryptData(
+        const std::vector<unsigned char>& plaintext,
+        std::vector<unsigned char>& ciphertext,
+        const std::vector<unsigned char>& key,
+        const std::vector<unsigned char>& iv
+    );
+
+    bool DecryptData(
+        const std::vector<unsigned char>& ciphertext,
+        std::vector<unsigned char>& plaintext,
+        const std::vector<unsigned char>& key,
+        const std::vector<unsigned char>& iv
+    );
 };
 
 #endif
