@@ -5,7 +5,10 @@
 #include <sys/socket.h>
 #include <arpa/inet.h>
 #include <unistd.h>
+
 #include "../include/crypto.hpp"
+#include "../include/logger.hpp"
+
 
 class FileSender {
 private:
@@ -42,17 +45,17 @@ public:
         // Create a socket - IPv4, TCP
         socketFD = socket(AF_INET, SOCK_STREAM, 0);
         if (socketFD < 0) {
-            std::cerr << "[ERROR] FileSender::ConnectToServer(): Socket creation error\n";
+            Log::Error("FileSender::ConnectToServer()", "Socket creation error");
             return false;
         }
 
         if (inet_pton(AF_INET, serverIP.c_str(), &serverAddr.sin_addr) <= 0) {
-            std::cerr << "[ERROR] FileSender::ConnectToServer(): Invalid address/Address not supported\n";
+            Log::Error("FileSender::ConnectToServer()", "Invalid address/Address not supported");
             return false;
         }
 
         if (connect(socketFD, (struct sockaddr*)&serverAddr, sizeof(serverAddr)) < 0) {
-            std::cerr << "[ERROR] FileSender::ConnectToServer(): Connection failed\n";
+            Log::Error("FileSender::ConnectToServer()", "Connection failed");
             return false;
         }
 
@@ -68,32 +71,45 @@ public:
         
         // Open file in binary mode
         std::ifstream infile(filename, std::ios::binary);
-        if (!infile) {
-            std::cerr << "[ERROR] FileSender::SendFile(): Failed to open file '" << filename << "'\n";
+        if (infile.fail()) {
+            Log::Error("FileSender::SendFile()", std::format("Failed to open file '{}'", filename));
             return false;
         }
+
+        // Load the file contents into a vector
+        std::vector<unsigned char> plainFileData((std::istreambuf_iterator<char>(infile)), std::istreambuf_iterator<char>());
 
         // Encrypt the file contents
-        // encryptedData holds the key, IV, and encrypted content
-        std::vector<unsigned char> encryptedData = Crypto::EncryptFileContents(infile);
-        if (encryptedData.empty()) {
-            std::cerr << "[ERROR] FileSender::SendFile(): Error encrypting file\n";
+        std::vector<unsigned char> encryptedData;
+        bool encryptionStatus = Crypto::EncryptData(plainFileData, encryptedData, Crypto::preSharedKey, Crypto::preSharedIV);
+        if (encryptionStatus == false) {
+            Log::Error("FileSender::SendFile()", "Error encrypting file");
             return false;
         }
 
+        // Send size of file to server, so it knows how much data to expect
+        size_t fileSize = encryptedData.size();
+        if (send(socketFD, &fileSize, sizeof(fileSize), 0) < 0) {
+            Log::Error("FileSender::SendFile()", "Error sending file size");
+            return false;
+        }
+        
         // Send the encrypted file contents to the server in 1024 byte chunks
-        size_t totalSize = encryptedData.size();
         size_t sentSize = 0;
+        size_t totalSize = encryptedData.size();
         while (sentSize < totalSize) {
+            // Send the min amongst 1024 bytes, or how much ever is left to send
             size_t chunkSize = std::min(static_cast<size_t>(1024), totalSize - sentSize);
+
             if (send(socketFD, encryptedData.data() + sentSize, chunkSize, 0) < 0) {
-                std::cerr << "[ERROR] FileSender::SendFile(): Error sending encrypted file\n";
+                Log::Error("FileSender::SendFile()", "Error sending encrypted file");
                 return false;
             }
+
             sentSize += chunkSize;
         }
 
-        std::cout << std::format("[INFO] FileSender::SendFile(): File {} sent successfully!\n", filename);
+        Log::Success("FileSender::SendFile()", std::format("File {} sent successfully!", filename));
         return true;
     }
 

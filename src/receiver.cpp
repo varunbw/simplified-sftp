@@ -7,6 +7,7 @@
 #include <unistd.h>
 
 #include "../include/crypto.hpp"
+#include "../include/logger.hpp"
 
 class FileReceiver {
 private:
@@ -23,11 +24,12 @@ public:
 
     FileReceiver(const int port) {
 
-        serverPort = port;
-        serverFD = -1;
         clientSocket = -1;
-        addrlen = sizeof(address);
+
+        serverFD = -1;
         address = {};
+        addrlen = sizeof(address);
+        serverPort = port;
      
         return;
     }
@@ -45,19 +47,19 @@ public:
         
         // Create socket file descriptor
         if ((serverFD = socket(AF_INET, SOCK_STREAM, 0)) == 0) {
-            std::cerr << "[ERROR] FileReceiver::InitializeServer(): Socket creation error\n";
+            Log::Error("FileReceiver::InitializeServer()", "Socket creation error");
             return false;
         }
 
         // Bind the socket to the port
         if (bind(serverFD, (struct sockaddr*)&address, sizeof(address)) < 0) {
-            std::cerr << "[ERROR] FileReceiver::InitializeServer(): Bind error\n";
+            Log::Error("FileReceiver::InitializeServer()", "Bind error");
             return false;
         }
 
         // Start listening for connections
         if (listen(serverFD, 3) < 0) {
-            std::cerr << "[ERROR] FileReceiver::InitializeServer(): Listen error\n";
+            Log::Error("FileReceiver::InitializeServer()", "Listen error");
             return false;
         }
 
@@ -74,7 +76,7 @@ public:
         clientSocket = accept(serverFD, (struct sockaddr*)&address, (socklen_t*)&addrlen);
         
         if (clientSocket < 0) {
-            std::cerr << "[ERROR] FileReceiver::AcceptConnection(): Accept error\n";
+            Log::Error("FileReceiver::AcceptConnection()", "Accept error");
             return false;
         }
         
@@ -88,33 +90,52 @@ public:
     */
     bool ReceiveFile(const std::string& filename) {
         
-        std::vector<unsigned char> encryptedContent;
-        std::vector<unsigned char> decryptedContent;
+        std::vector<unsigned char> encryptedData;
+        std::vector<unsigned char> decryptedData;
+
         std::string buffer(1024, '\0');
         int bytesRead;
 
-        // Read data from client and store in vector
-        while ((bytesRead = read(clientSocket, &buffer[0], buffer.size())) > 0) {
-            encryptedContent.insert(encryptedContent.end(), buffer.begin(), buffer.begin() + bytesRead);
-        }
-
-        // Decrypt the content
-        if (Crypto::DecryptFileContents(encryptedContent, decryptedContent) == false) {
-            std::cerr << "[ERROR] FileReceiver::ReceiveFile(): Decryption failed\n";
+        // Read the size of file to be received
+        size_t fileSize = -1;
+        if (read(clientSocket, &fileSize, sizeof(fileSize)) != sizeof(fileSize)) {
+            Log::Error("FileReceiver::ReceiveFile()", "Error reading file size");
             return false;
         }
 
-        // Write decrypted content to file
+        // Read the file data based on the file size
+        size_t totalBytesRead = 0;
+        while ((totalBytesRead < fileSize) && (bytesRead = read(clientSocket, &buffer[0], buffer.size())) > 0) {
+            encryptedData.insert(encryptedData.end(), buffer.begin(), buffer.begin() + bytesRead);
+            totalBytesRead += bytesRead;
+        }
+
+        // Verify that the file data was read correctly
+        if (totalBytesRead != fileSize) {
+            // Log::Error("FileReceiver::ReceiveFile()", "File size mismatch");
+            Log::Error("FileReceiver::ReceiveFile()", std::format("File size mismatch, expected {} bytes, but read {} bytes", fileSize, totalBytesRead));
+            return false;
+        }
+        
+        // Decrypt the Data
+        bool decryptionStatus = Crypto::DecryptData(encryptedData, decryptedData, Crypto::preSharedKey, Crypto::preSharedIV);
+        if (decryptionStatus == false) {
+            Log::Error("FileReceiver::ReceiveFile()", "Decryption failed");
+            return false;
+        }
+
+        // Write decrypted Data to file
         std::ofstream outfile(filename, std::ios::binary);
         if (!outfile) {
-            std::cerr << "[ERROR] FileReceiver::ReceiveFile(): Failed to create file '" << filename << "'\n";
+            Log::Error("FileReceiver::ReceiveFile()", std::format("Failed to create file '{}'", filename));
             return false;
         }
 
-        outfile.write(reinterpret_cast<const char*>(decryptedContent.data()), decryptedContent.size());
+        // Write the decrypted data to the file
+        outfile.write(reinterpret_cast<const char*>(decryptedData.data()), decryptedData.size());
         outfile.close();
 
-        std::cout << std::format("[INFO] FileReceiver::ReceiveFile(): File saved as {} successfully!\n", filename);
+        Log::Success("FileReceiver::ReceiveFile()", std::format("File saved as {} successfully!", filename));
         return true;
     }
 
