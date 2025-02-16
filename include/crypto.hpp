@@ -1,3 +1,6 @@
+#ifndef CRYPTO_SSFTP
+#define CRYPTO_SSFTP
+
 #include <openssl/evp.h>
 #include <openssl/rand.h>
 #include <iostream>
@@ -23,3 +26,5 @@ namespace Crypto {
     std::vector<unsigned char> EncryptFileContents(std::ifstream& infile);
     bool DecryptFileContents(std::vector<unsigned char>& encryptedContent, std::vector<unsigned char>& decryptedContent);
 };
+
+#endif
