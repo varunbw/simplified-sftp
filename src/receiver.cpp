@@ -9,6 +9,7 @@
 #include "../include/crypto.hpp"
 #include "../include/logger.hpp"
 
+// todo move functions outside class definition
 class FileReceiver {
 private:
     // Socket FD for the sender (client)
@@ -128,6 +129,26 @@ public:
         std::ofstream outfile(filename, std::ios::binary);
         if (!outfile) {
             Log::Error("FileReceiver::ReceiveFile()", std::format("Failed to create file '{}'", filename));
+            return false;
+        }
+
+        // Read hash from socket
+        std::vector<unsigned char> receivedHash(32);
+        if (read(clientSocket, receivedHash.data(), receivedHash.size()) != receivedHash.size()) {
+            Log::Error("FileReceiver::ReceiveFile()", "Error reading hash");
+            return false;
+        }
+
+        // Calculate hash of decrypted data
+        std::vector<unsigned char> hash = Crypto::CalculateHash(decryptedData);
+        if (hash.empty()) {
+            Log::Error("FileReceiver::ReceiveFile()", "Error calculating hash");
+            return false;
+        }
+
+        // Compare the received hash with the calculated hash
+        if (hash != receivedHash) {
+            Log::Error("FileReceiver::ReceiveFile()", "Hash mismatch, file contents are invalid");
             return false;
         }
 

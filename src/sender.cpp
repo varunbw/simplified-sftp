@@ -9,7 +9,7 @@
 #include "../include/crypto.hpp"
 #include "../include/logger.hpp"
 
-
+// todo move functions outside class definition
 class FileSender {
 private:
     // Sender (client) socket
@@ -107,6 +107,20 @@ public:
             }
 
             sentSize += chunkSize;
+        }
+
+        // todo move hash sending to another function
+        // Calculate hash of the file
+        std::vector<unsigned char> hash = Crypto::CalculateHash(plainFileData);
+        if (hash.empty()) {
+            Log::Error("FileSender::SendFile()", "Error calculating hash");
+            return false;
+        }
+
+        // Send hash data to server
+        if (send(socketFD, hash.data(), hash.size(), 0) < 0) {
+            Log::Error("FileSender::SendFile()", "Error sending hash");
+            return false;
         }
 
         Log::Success("FileSender::SendFile()", std::format("File {} sent successfully!", filename));

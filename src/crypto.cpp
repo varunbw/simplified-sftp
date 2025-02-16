@@ -4,7 +4,9 @@
 #include <fstream>
 #include <vector>
 #include <cstring>
+
 #include "../include/crypto.hpp"
+#include "../include/logger.hpp"
 
 /*
     This file performs the main Encryption and Decryption operations using AES-256 in CBC mode
@@ -174,4 +176,43 @@ namespace Crypto {
         EVP_CIPHER_CTX_free(ctx);
         return true;
     }
+
+    std::vector<unsigned char> CalculateHash(const std::vector<unsigned char>& data) {
+        // Create a context for the hash operation
+        EVP_MD_CTX* ctx = EVP_MD_CTX_new();
+        if (!ctx) {
+            Log::Error("Crypto::CalculateHash", "Error creating hash context");
+            return {};
+        }
+
+        // Initialize the hash operation with SHA-256
+        if (EVP_DigestInit_ex(ctx, EVP_sha256(), NULL) != 1) {
+            Log::Error("Crypto::CalculateHash", "Error initializing hash operation");
+            EVP_MD_CTX_free(ctx);
+            return {};
+        }
+
+        // Provide the data to be hashed
+        if (EVP_DigestUpdate(ctx, data.data(), data.size()) != 1) {
+            Log::Error("Crypto::CalculateHash", "Error updating hash operation");
+            EVP_MD_CTX_free(ctx);
+            return {};
+        }
+
+        // Finalize the hash operation and retrieve the hash value
+        std::vector<unsigned char> hash(EVP_MD_size(EVP_sha256()));
+        unsigned int hashLen;
+        if (EVP_DigestFinal_ex(ctx, hash.data(), &hashLen) != 1) {
+            Log::Error("Crypto::CalculateHash", "Error finalizing hash operation");
+            EVP_MD_CTX_free(ctx);
+            return {};
+        }
+
+        // Free the context
+        EVP_MD_CTX_free(ctx);
+
+        return hash;
+    }
+    
+    
 };

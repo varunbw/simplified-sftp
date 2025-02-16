@@ -1,11 +1,7 @@
 #ifndef CRYPTO_SSFTP
 #define CRYPTO_SSFTP
 
-#include <openssl/evp.h>
-#include <openssl/rand.h>
-#include <iostream>
 #include <vector>
-#include <cstring>
 
 namespace Crypto {
 
@@ -36,6 +32,8 @@ namespace Crypto {
         const std::vector<unsigned char>& key,
         const std::vector<unsigned char>& iv
     );
+
+    std::vector<unsigned char> CalculateHash(const std::vector<unsigned char>& data);
 };
 
 #endif
