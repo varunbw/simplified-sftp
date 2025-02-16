@@ -12,7 +12,7 @@ for arg in "$@"; do
     SOURCE_FILES="$SOURCE_FILES $arg.cpp"
 done
 
-OUTPUT_FILE="output"
+OUTPUT_FILE="$1.out"
 
 # Base compile command
 COMPILE_CMD="g++ -g $SOURCE_FILES -o $OUTPUT_FILE -std=c++23 -fsanitize=address -lssl -lcrypto"
