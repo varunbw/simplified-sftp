@@ -8,7 +8,6 @@
 
 #include "../include/main.hpp"
 
-// todo move functions outside class definition
 class FileReceiver {
 private:
     // Socket FD for the sender (client)
@@ -20,8 +19,26 @@ private:
     int addrlen;
     int serverPort;
 
-public:
+    /*
+        There are three main steps involved in receiving data from the client
+        (in this implementation of SFTP)
+        1. Read the file size, and file sent by the client
+        2. Decrypt the file data (There isn't a function for this, its done in ReceiveFile())
+        3. Verify the hash of the decrypted data
+        4. Write the decrypted data to a file (No function for this either, its done in ReceiveFile())
 
+        Although these steps can be combined into a single function, they are kept separate
+        for better readability and maintainability
+
+        These are private functions since they are only used internally by the class
+        and are not meant to be called by the user
+    */
+    // Step 1
+    bool ReadFromClient(std::vector<Byte>& encryptedData);
+    // Step 3
+    bool ReadAndVerifyHash(std::vector<Byte>& decryptedData);
+
+public:
     FileReceiver(const int port) {
 
         clientSocket = -1;
@@ -93,18 +110,13 @@ bool FileReceiver::AcceptConnection() {
     return true;
 }
 
-/*
-    Receive a file from the client
-    @param filename: path to the file to save
-    @return true if file is received successfully, false otherwise
-*/
-bool FileReceiver::ReceiveFile(const std::string& filename) {
-    
-    std::vector<unsigned char> encryptedData;
-    std::vector<unsigned char> decryptedData;
 
-    std::string buffer(1024, '\0');
-    int bytesRead;
+/*
+    Read the file size, and file sent by the client
+    @param encryptedData: vector to store the encrypted data
+    @return true if data is read successfully, false otherwise
+*/
+bool FileReceiver::ReadFromClient(std::vector<Byte>& encryptedData) {
 
     // Read the size of file to be received
     size_t fileSize = -1;
@@ -114,7 +126,9 @@ bool FileReceiver::ReceiveFile(const std::string& filename) {
     }
 
     // Read the file data based on the file size
+    size_t bytesRead;
     size_t totalBytesRead = 0;
+    std::string buffer(1024, '\0');
     while ((totalBytesRead < fileSize) && (bytesRead = read(clientSocket, &buffer[0], buffer.size())) > 0) {
         encryptedData.insert(encryptedData.end(), buffer.begin(), buffer.begin() + bytesRead);
         totalBytesRead += bytesRead;
@@ -122,27 +136,29 @@ bool FileReceiver::ReceiveFile(const std::string& filename) {
 
     // Verify that the file data was read correctly
     if (totalBytesRead != fileSize) {
-        // Log::Error("FileReceiver::ReceiveFile()", "File size mismatch");
         Log::Error("FileReceiver::ReceiveFile()", std::format("File size mismatch, expected {} bytes, but read {} bytes", fileSize, totalBytesRead));
         return false;
     }
-    
-    // Decrypt the Data
-    bool decryptionStatus = Crypto::DecryptData(encryptedData, decryptedData, Crypto::preSharedKey, Crypto::preSharedIV);
-    if (decryptionStatus == false) {
-        Log::Error("FileReceiver::ReceiveFile()", "Decryption failed");
-        return false;
-    }
+
+    return true;
+}
+
+/*
+    Verify the hash of the decrypted data
+    @param decryptedData: decrypted data
+    @return true if hash is verified successfully, false otherwise
+*/
+bool FileReceiver::ReadAndVerifyHash(std::vector<Byte>& decryptedData) {
 
     // Read hash sent by sender
-    std::vector<unsigned char> receivedHash(32);
+    std::vector<Byte> receivedHash(32);
     if (read(clientSocket, receivedHash.data(), receivedHash.size()) != receivedHash.size()) {
         Log::Error("FileReceiver::ReceiveFile()", "Error reading hash");
         return false;
     }
 
     // Calculate hash of decrypted data
-    std::vector<unsigned char> hash = Crypto::CalculateHash(decryptedData);
+    std::vector<Byte> hash = Crypto::CalculateHash(decryptedData);
     if (hash.empty()) {
         Log::Error("FileReceiver::ReceiveFile()", "Error calculating hash");
         return false;
@@ -154,14 +170,52 @@ bool FileReceiver::ReceiveFile(const std::string& filename) {
         return false;
     }
 
+    return true;
+}
+
+
+
+/*
+    Receive a file from the client
+    @param filename: path to the file to save
+    @return true if file is received successfully, false otherwise
+*/
+bool FileReceiver::ReceiveFile(const std::string& filename) {
+    
+    std::vector<Byte> encryptedData;
+    std::vector<Byte> decryptedData;
+
+    // -- Step 1 --
+    // Read the file size, and file sent by the client
+    bool readStatus = ReadFromClient(encryptedData);
+    if (readStatus == false) {
+        Log::Error("FileReceiver::ReceiveFile()", "Error reading file sent by client");
+        return false;
+    }
+
+    // -- Step 2 --
+    // Decrypt the Data
+    bool decryptionStatus = Crypto::DecryptData(encryptedData, decryptedData, Crypto::preSharedKey, Crypto::preSharedIV);
+    if (decryptionStatus == false) {
+        Log::Error("FileReceiver::ReceiveFile()", "Decryption failed");
+        return false;
+    }
+
+    // -- Step 3 --
+    // Verify the hash of the decrypted data
+    bool hashStatus = ReadAndVerifyHash(decryptedData);
+    if (hashStatus == false) {
+        Log::Error("FileReceiver::ReceiveFile()", "Error verifying hash");
+        return false;
+    }
+
+    // -- Step 4 --
     // Write decrypted Data to file
     std::ofstream outfile(filename, std::ios::binary);
     if (!outfile) {
         Log::Error("FileReceiver::ReceiveFile()", std::format("Failed to create file '{}'", filename));
         return false;
     }
-
-    // Write the decrypted data to the file
     outfile.write(reinterpret_cast<const char*>(decryptedData.data()), decryptedData.size());
     outfile.close();
 
@@ -192,11 +246,11 @@ int main() {
     constexpr int port = 8080;
     FileReceiver receiver(port);
 
-    if (!receiver.InitializeServer())
+    if (receiver.InitializeServer() == false)
         return 1;
-    if (!receiver.AcceptConnection())
+    if (receiver.AcceptConnection() == false)
         return 1;
-    if (!receiver.ReceiveFile("../temp/received_file.txt"))
+    if (receiver.ReceiveFile("../temp/received_file.txt") == false)
         return 1;
 
     return 0;
