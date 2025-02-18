@@ -19,6 +19,23 @@ private:
     std::string serverIP;
     int serverPort;
 
+    /*
+        There are three main steps involved in sending data to the server
+        (in this implementation of SFTP)
+        1. Load the file contents into a vector
+        2. Encrypt the file contents and send it to the server
+        3. Calculate hash of the file and send it to the server
+
+        Although these steps can be combined into a single function, they are kept separate
+        for better readability and maintainability
+
+        These are private functions since they are only used internally by the class
+        and are not meant to be called by the user
+    */
+    bool LoadFileIntoVector(const std::string& filename, std::vector<unsigned char>& data);
+    bool EncryptAndSendToServer(const std::vector<unsigned char>& data);
+    bool CalculateHashAndSendToServer(const std::vector<unsigned char>& data);
+
 public:
     FileSender(const std::string& ip, const int port) {
 
@@ -72,12 +89,12 @@ bool FileSender::ConnectToServer() {
 }
 
 /*
-    Send a file to the server
-    @param filename: path to the file to send
-    @return true if file is sent successfully, false otherwise
+    Load the contents of a file into a vector
+    @param filename: path to the file
+    @param data: vector to store the file contents
+    @return true if file is loaded successfully, false otherwise
 */
-bool FileSender::SendFile(const std::string& filename) {
-    
+bool FileSender::LoadFileIntoVector(const std::string& filename, std::vector<unsigned char>& data) {
     // Open file in binary mode
     std::ifstream infile(filename, std::ios::binary);
     if (infile.fail()) {
@@ -86,9 +103,19 @@ bool FileSender::SendFile(const std::string& filename) {
     }
 
     // Load the file contents into a vector
-    std::vector<unsigned char> plainFileData((std::istreambuf_iterator<char>(infile)), std::istreambuf_iterator<char>());
+    data = std::vector<unsigned char>((std::istreambuf_iterator<char>(infile)), std::istreambuf_iterator<char>());
 
-    // todo move encryption to another function
+    return true;
+}
+
+
+/*
+    Encrypt the file contents and send it to the server
+    @param plainFileData: file contents
+    @return true if file is sent successfully, false otherwise
+*/
+bool FileSender::EncryptAndSendToServer(const std::vector<unsigned char>& plainFileData) {
+
     // Encrypt the file contents
     std::vector<unsigned char> encryptedData;
     bool encryptionStatus = Crypto::EncryptData(plainFileData, encryptedData, Crypto::preSharedKey, Crypto::preSharedIV);
@@ -119,9 +146,19 @@ bool FileSender::SendFile(const std::string& filename) {
         sentSize += chunkSize;
     }
 
-    // todo move hash sending to another function
+    return true;
+}
+
+
+/*
+    Calculate hash of the file and send it to the server
+    @param data: file contents
+    @return true if hash is sent successfully, false otherwise
+*/
+bool FileSender::CalculateHashAndSendToServer(const std::vector<unsigned char>& data) {
+
     // Calculate hash of the file
-    std::vector<unsigned char> hash = Crypto::CalculateHash(plainFileData);
+    std::vector<unsigned char> hash = Crypto::CalculateHash(data);
     if (hash.empty()) {
         Log::Error("FileSender::SendFile()", "Error calculating hash");
         return false;
@@ -129,6 +166,42 @@ bool FileSender::SendFile(const std::string& filename) {
 
     // Send hash data to server
     if (send(socketFD, hash.data(), hash.size(), 0) < 0) {
+        Log::Error("FileSender::SendFile()", "Error sending hash");
+        return false;
+    }
+
+    return true;
+}
+
+
+/*
+    Send a file to the server
+    @param filename: path to the file to send
+    @return true if file is sent successfully, false otherwise
+*/
+bool FileSender::SendFile(const std::string& filename) {
+    
+    // -- Step 1 --
+    // Load the file into a vector
+    std::vector<unsigned char> plainFileData;
+    bool loadedData = LoadFileIntoVector(filename, plainFileData);
+    if (loadedData == false) {
+        Log::Error("FileSender::SendFile()", "Error loading file");
+        return false;
+    }
+    
+    // -- Step 2 --
+    // Encrypt and send the file to the server
+    bool sentToServer = EncryptAndSendToServer(plainFileData);
+    if (sentToServer == false) {
+        Log::Error("FileSender::SendFile()", "Error sending encrypted file");
+        return false;
+    }
+    
+    // -- Step 3 --
+    // Calculate hash and send it to the server
+    bool sentHash = CalculateHashAndSendToServer(plainFileData);
+    if (sentHash == false) {
         Log::Error("FileSender::SendFile()", "Error sending hash");
         return false;
     }
