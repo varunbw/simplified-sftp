@@ -31,9 +31,12 @@ private:
         These are private functions since they are only used internally by the class
         and are not meant to be called by the user
     */
+    // Step 1
     bool LoadFileIntoVector(const std::string& filename, std::vector<Byte>& data);
-    bool EncryptAndSendToServer(const std::vector<Byte>& data);
-    bool CalculateHashAndSendToServer(const std::vector<Byte>& data);
+    // Step 2
+    bool EncryptAndSend(const std::vector<Byte>& data);
+    // Step 3
+    bool CalculateHashAndSend(const std::vector<Byte>& data);
 
 public:
     FileSender(const std::string& ip, const int port) {
@@ -113,7 +116,7 @@ bool FileSender::LoadFileIntoVector(const std::string& filename, std::vector<Byt
     @param plainFileData: file contents
     @return true if file is sent successfully, false otherwise
 */
-bool FileSender::EncryptAndSendToServer(const std::vector<Byte>& plainFileData) {
+bool FileSender::EncryptAndSend(const std::vector<Byte>& plainFileData) {
 
     // Encrypt the file contents
     std::vector<Byte> encryptedData;
@@ -154,7 +157,7 @@ bool FileSender::EncryptAndSendToServer(const std::vector<Byte>& plainFileData) 
     @param data: file contents
     @return true if hash is sent successfully, false otherwise
 */
-bool FileSender::CalculateHashAndSendToServer(const std::vector<Byte>& data) {
+bool FileSender::CalculateHashAndSend(const std::vector<Byte>& data) {
 
     // Calculate hash of the file
     std::vector<Byte> hash = Crypto::CalculateHash(data);
@@ -191,7 +194,7 @@ bool FileSender::SendFile(const std::string& filename) {
     
     // -- Step 2 --
     // Encrypt and send the file to the server
-    bool sentToServer = EncryptAndSendToServer(plainFileData);
+    bool sentToServer = EncryptAndSend(plainFileData);
     if (sentToServer == false) {
         Log::Error("FileSender::SendFile()", "Error sending encrypted file");
         return false;
@@ -199,7 +202,7 @@ bool FileSender::SendFile(const std::string& filename) {
     
     // -- Step 3 --
     // Calculate hash and send it to the server
-    bool sentHash = CalculateHashAndSendToServer(plainFileData);
+    bool sentHash = CalculateHashAndSend(plainFileData);
     if (sentHash == false) {
         Log::Error("FileSender::SendFile()", "Error sending hash");
         return false;

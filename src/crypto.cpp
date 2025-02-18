@@ -146,8 +146,8 @@ namespace Crypto {
         
         // Resize the plaintext vector to accommodate the decrypted data
         plaintext.resize(ciphertext.size());
-        std::cout << "Ciphertext size: " << ciphertext.size() << std::endl;
-        std::cout << "Plaintext size: " << plaintext.size() << std::endl;
+        Log::Info("Crypto::DecryptData()", "Ciphertext size: " + std::to_string(ciphertext.size()));
+        Log::Info("Crypto::DecryptData()", "Plaintext size:  " + std::to_string(plaintext.size()));
         
         // Decrypt the ciphertext
         int len;
