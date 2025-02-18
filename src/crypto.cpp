@@ -5,8 +5,7 @@
 #include <vector>
 #include <cstring>
 
-#include "../include/crypto.hpp"
-#include "../include/logger.hpp"
+#include "../include/main.hpp"
 
 /*
     This file performs the main Encryption and Decryption operations using AES-256 in CBC mode
@@ -44,17 +43,17 @@
 namespace Crypto {
 
     bool EncryptData(
-        const std::vector<unsigned char>& plaintext,
-        std::vector<unsigned char>& ciphertext,
-        const std::vector<unsigned char>& key,
-        const std::vector<unsigned char>& iv
+        const std::vector<Byte>& plaintext,
+        std::vector<Byte>& ciphertext,
+        const std::vector<Byte>& key,
+        const std::vector<Byte>& iv
     );
 
     bool DecryptData(
-        const std::vector<unsigned char>& ciphertext,
-        std::vector<unsigned char>& plaintext,
-        const std::vector<unsigned char>& key,
-        const std::vector<unsigned char>& iv
+        const std::vector<Byte>& ciphertext,
+        std::vector<Byte>& plaintext,
+        const std::vector<Byte>& key,
+        const std::vector<Byte>& iv
     );
 
     /*
@@ -66,10 +65,10 @@ namespace Crypto {
         @return true if encryption is successful, false otherwise
     */
     bool EncryptData(
-        const std::vector<unsigned char>& plaintext,
-        std::vector<unsigned char>& ciphertext,
-        const std::vector<unsigned char>& key,
-        const std::vector<unsigned char>& iv
+        const std::vector<Byte>& plaintext,
+        std::vector<Byte>& ciphertext,
+        const std::vector<Byte>& key,
+        const std::vector<Byte>& iv
     ) {
         
         // Create a new context
@@ -124,10 +123,10 @@ namespace Crypto {
         @return true if decryption is successful, false otherwise
     */
     bool DecryptData(
-        const std::vector<unsigned char>& ciphertext,
-        std::vector<unsigned char>& plaintext,
-        const std::vector<unsigned char>& key,
-        const std::vector<unsigned char>& iv
+        const std::vector<Byte>& ciphertext,
+        std::vector<Byte>& plaintext,
+        const std::vector<Byte>& key,
+        const std::vector<Byte>& iv
     ) {
         
         // Create a new context
@@ -177,7 +176,7 @@ namespace Crypto {
         return true;
     }
 
-    std::vector<unsigned char> CalculateHash(const std::vector<unsigned char>& data) {
+    std::vector<Byte> CalculateHash(const std::vector<Byte>& data) {
         // Create a context for the hash operation
         EVP_MD_CTX* ctx = EVP_MD_CTX_new();
         if (!ctx) {
@@ -200,7 +199,7 @@ namespace Crypto {
         }
 
         // Finalize the hash operation and retrieve the hash value
-        std::vector<unsigned char> hash(EVP_MD_size(EVP_sha256()));
+        std::vector<Byte> hash(EVP_MD_size(EVP_sha256()));
         unsigned int hashLen;
         if (EVP_DigestFinal_ex(ctx, hash.data(), &hashLen) != 1) {
             Log::Error("Crypto::CalculateHash", "Error finalizing hash operation");
@@ -213,6 +212,4 @@ namespace Crypto {
 
         return hash;
     }
-    
-    
 };

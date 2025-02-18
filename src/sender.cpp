@@ -6,8 +6,7 @@
 #include <arpa/inet.h>
 #include <unistd.h>
 
-#include "../include/crypto.hpp"
-#include "../include/logger.hpp"
+#include "../include/main.hpp"
 
 class FileSender {
 private:
@@ -32,9 +31,9 @@ private:
         These are private functions since they are only used internally by the class
         and are not meant to be called by the user
     */
-    bool LoadFileIntoVector(const std::string& filename, std::vector<unsigned char>& data);
-    bool EncryptAndSendToServer(const std::vector<unsigned char>& data);
-    bool CalculateHashAndSendToServer(const std::vector<unsigned char>& data);
+    bool LoadFileIntoVector(const std::string& filename, std::vector<Byte>& data);
+    bool EncryptAndSendToServer(const std::vector<Byte>& data);
+    bool CalculateHashAndSendToServer(const std::vector<Byte>& data);
 
 public:
     FileSender(const std::string& ip, const int port) {
@@ -94,7 +93,7 @@ bool FileSender::ConnectToServer() {
     @param data: vector to store the file contents
     @return true if file is loaded successfully, false otherwise
 */
-bool FileSender::LoadFileIntoVector(const std::string& filename, std::vector<unsigned char>& data) {
+bool FileSender::LoadFileIntoVector(const std::string& filename, std::vector<Byte>& data) {
     // Open file in binary mode
     std::ifstream infile(filename, std::ios::binary);
     if (infile.fail()) {
@@ -103,7 +102,7 @@ bool FileSender::LoadFileIntoVector(const std::string& filename, std::vector<uns
     }
 
     // Load the file contents into a vector
-    data = std::vector<unsigned char>((std::istreambuf_iterator<char>(infile)), std::istreambuf_iterator<char>());
+    data = std::vector<Byte>((std::istreambuf_iterator<char>(infile)), std::istreambuf_iterator<char>());
 
     return true;
 }
@@ -114,10 +113,10 @@ bool FileSender::LoadFileIntoVector(const std::string& filename, std::vector<uns
     @param plainFileData: file contents
     @return true if file is sent successfully, false otherwise
 */
-bool FileSender::EncryptAndSendToServer(const std::vector<unsigned char>& plainFileData) {
+bool FileSender::EncryptAndSendToServer(const std::vector<Byte>& plainFileData) {
 
     // Encrypt the file contents
-    std::vector<unsigned char> encryptedData;
+    std::vector<Byte> encryptedData;
     bool encryptionStatus = Crypto::EncryptData(plainFileData, encryptedData, Crypto::preSharedKey, Crypto::preSharedIV);
     if (encryptionStatus == false) {
         Log::Error("FileSender::SendFile()", "Error encrypting file");
@@ -155,10 +154,10 @@ bool FileSender::EncryptAndSendToServer(const std::vector<unsigned char>& plainF
     @param data: file contents
     @return true if hash is sent successfully, false otherwise
 */
-bool FileSender::CalculateHashAndSendToServer(const std::vector<unsigned char>& data) {
+bool FileSender::CalculateHashAndSendToServer(const std::vector<Byte>& data) {
 
     // Calculate hash of the file
-    std::vector<unsigned char> hash = Crypto::CalculateHash(data);
+    std::vector<Byte> hash = Crypto::CalculateHash(data);
     if (hash.empty()) {
         Log::Error("FileSender::SendFile()", "Error calculating hash");
         return false;
@@ -183,7 +182,7 @@ bool FileSender::SendFile(const std::string& filename) {
     
     // -- Step 1 --
     // Load the file into a vector
-    std::vector<unsigned char> plainFileData;
+    std::vector<Byte> plainFileData;
     bool loadedData = LoadFileIntoVector(filename, plainFileData);
     if (loadedData == false) {
         Log::Error("FileSender::SendFile()", "Error loading file");

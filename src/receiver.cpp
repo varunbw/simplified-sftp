@@ -6,8 +6,7 @@
 #include <netinet/in.h>
 #include <unistd.h>
 
-#include "../include/crypto.hpp"
-#include "../include/logger.hpp"
+#include "../include/main.hpp"
 
 // todo move functions outside class definition
 class FileReceiver {
