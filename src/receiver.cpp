@@ -117,7 +117,7 @@ bool FileReceiver::AcceptConnection() {
     @return true if data is read successfully, false otherwise
 */
 bool FileReceiver::ReadFromClient(std::vector<Byte>& encryptedData) {
-
+    
     // Read the size of file to be received
     size_t fileSize = -1;
     if (read(clientSocket, &fileSize, sizeof(fileSize)) != sizeof(fileSize)) {
@@ -129,7 +129,26 @@ bool FileReceiver::ReadFromClient(std::vector<Byte>& encryptedData) {
     size_t bytesRead;
     size_t totalBytesRead = 0;
     std::string buffer(1024, '\0');
-    while ((totalBytesRead < fileSize) && (bytesRead = read(clientSocket, &buffer[0], buffer.size())) > 0) {
+
+    while (totalBytesRead < fileSize) {
+        /*
+            While reading file data, we might accidently read the hash that the client
+            will send as well.
+            To avoid this, we need to calculate how much data to read each iteration, so
+            that we don't accidently read the hash as part of the file as well
+
+            `bytesToRead` will read either `buffer.size()` data, or the amount of data
+            that's yet to be read
+        */
+        size_t bytesToRead = std::min(buffer.size(), fileSize - totalBytesRead);
+        bytesRead = read(clientSocket, &buffer[0], bytesToRead);
+
+        if (bytesRead <= 0) {
+            Log::Error("FileReceiver::ReceiveFile()", "Error reading file data");
+            return false;
+        }
+
+        // Insert the `buffer` at `encryptedData.end()`.
         encryptedData.insert(encryptedData.end(), buffer.begin(), buffer.begin() + bytesRead);
         totalBytesRead += bytesRead;
     }
