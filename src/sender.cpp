@@ -77,11 +77,13 @@ bool FileSender::ConnectToServer() {
         return false;
     }
 
+    // Convert addresses from text to binary form
     if (inet_pton(AF_INET, serverIP.c_str(), &serverAddr.sin_addr) <= 0) {
         Log::Error("FileSender::ConnectToServer()", "Invalid address/Address not supported");
         return false;
     }
 
+    // Connect to the server
     if (connect(socketFD, (struct sockaddr*)&serverAddr, sizeof(serverAddr)) < 0) {
         Log::Error("FileSender::ConnectToServer()", "Connection failed");
         return false;
@@ -95,6 +97,10 @@ bool FileSender::ConnectToServer() {
     @param filename: path to the file
     @param data: vector to store the file contents
     @return true if file is loaded successfully, false otherwise
+
+    Normally, the file would be read in chunks and sent to the server,
+    to avoid creating unnecessarily large buffers and wasting memory.
+    But for simplicity, the entire file is read into memory at once.
 */
 bool FileSender::LoadFileIntoVector(const std::string& filename, std::vector<Byte>& data) {
     // Open file in binary mode
@@ -105,6 +111,7 @@ bool FileSender::LoadFileIntoVector(const std::string& filename, std::vector<Byt
     }
 
     // Load the file contents into a vector
+    // istreambuf_iterator reads the file contents as a stream of bytes
     data = std::vector<Byte>((std::istreambuf_iterator<char>(infile)), std::istreambuf_iterator<char>());
 
     return true;
@@ -115,10 +122,25 @@ bool FileSender::LoadFileIntoVector(const std::string& filename, std::vector<Byt
     Encrypt the file contents and send it to the server
     @param plainFileData: file contents
     @return true if file is sent successfully, false otherwise
+
+    Similar to LoadFileIntoVector(), the chunks that were read into memory
+    could be encrypted and sent to the server in chunks, to avoid creating
+    unnecessarily large buffers and wasting memory.
+
+    But for simplicity, the entire file is encrypted and sent at once.
 */
 bool FileSender::EncryptAndSend(const std::vector<Byte>& plainFileData) {
 
-    // Encrypt the file contents
+    /*
+        Encrypt the file contents using AES-256-CBC encryption
+        See Crypto::EncryptData() in crypto.cpp for more details
+        
+        In a normal implementation of SFTP, the file would be encrypted using the server's public key
+        and decrypted using the server's private key.
+        However, for simplicity, a pre-shared key is used here along with a pre-shared IV (Initialization Vector)
+
+        You can use any 256 bit key and 128 bit IV for encryption
+    */
     std::vector<Byte> encryptedData;
     bool encryptionStatus = Crypto::EncryptData(plainFileData, encryptedData, Crypto::preSharedKey, Crypto::preSharedIV);
     if (encryptionStatus == false) {
@@ -126,26 +148,35 @@ bool FileSender::EncryptAndSend(const std::vector<Byte>& plainFileData) {
         return false;
     }
 
-    // Send size of file to server, so it knows how much data to expect
+    /*
+        Send size of encrypted data to the server
+        This is done so that the server knows how much data to expect
+
+        We cannot send the size of the file prior to encryption, since AES encryption
+        will change the size of the data (padding will be added)
+        Hence, encryption is carried first, then the size of the vector is taken
+    */
     size_t fileSize = encryptedData.size();
-    if (send(socketFD, &fileSize, sizeof(fileSize), 0) < 0) {
+    int bytesSent = send(socketFD, &fileSize, sizeof(fileSize), 0);
+    if (bytesSent < 0) {
         Log::Error("FileSender::SendFile()", "Error sending file size");
         return false;
     }
     
     // Send the encrypted file contents to the server in 1024 byte chunks
-    size_t sentSize = 0;
+    size_t totalBytesSent = 0;
     size_t totalSize = encryptedData.size();
-    while (sentSize < totalSize) {
+    while (totalBytesSent < totalSize) {
         // Send the min amongst 1024 bytes, or how much ever is left to send
-        size_t chunkSize = std::min(static_cast<size_t>(1024), totalSize - sentSize);
+        size_t chunkSize = std::min(static_cast<size_t>(1024), totalSize - totalBytesSent);
 
-        if (send(socketFD, encryptedData.data() + sentSize, chunkSize, 0) < 0) {
+        int sentBytes = send(socketFD, encryptedData.data() + totalBytesSent, chunkSize, 0);
+        if (sentBytes < 0) {
             Log::Error("FileSender::SendFile()", "Error sending encrypted file");
             return false;
         }
 
-        sentSize += chunkSize;
+        totalBytesSent += chunkSize;
     }
 
     return true;
@@ -167,7 +198,8 @@ bool FileSender::CalculateHashAndSend(const std::vector<Byte>& data) {
     }
 
     // Send hash data to server
-    if (send(socketFD, hash.data(), hash.size(), 0) < 0) {
+    int sentBytes = send(socketFD, &hash[0], hash.size(), 0);
+    if (sentBytes < 0) {
         Log::Error("FileSender::SendFile()", "Error sending hash");
         return false;
     }
