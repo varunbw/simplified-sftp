@@ -46,21 +46,6 @@
 
 
 namespace Crypto {
-
-    bool EncryptData(
-        const std::vector<Byte>& plaintext,
-        std::vector<Byte>& ciphertext,
-        const std::vector<Byte>& key,
-        const std::vector<Byte>& iv
-    );
-
-    bool DecryptData(
-        const std::vector<Byte>& ciphertext,
-        std::vector<Byte>& plaintext,
-        const std::vector<Byte>& key,
-        const std::vector<Byte>& iv
-    );
-
     /*
         Encrypts the plaintext using AES-256 in CBC mode
         @param plaintext: the plaintext to be encrypted
@@ -69,12 +54,10 @@ namespace Crypto {
         @param iv: the initialization vector
         @return true if encryption is successful, false otherwise
     */
-    bool EncryptData(
-        const std::vector<Byte>& plaintext,
-        std::vector<Byte>& ciphertext,
-        const std::vector<Byte>& key,
-        const std::vector<Byte>& iv
-    ) {
+    bool EncryptData(const std::vector<Byte>& plaintext, std::vector<Byte>& ciphertext) {
+
+        const std::vector<Byte>& key = preSharedKey;
+        const std::vector<Byte>& iv = preSharedIV;
         
         // Create a new context
         EVP_CIPHER_CTX* ctx = EVP_CIPHER_CTX_new();
@@ -137,12 +120,10 @@ namespace Crypto {
         @param iv: the initialization vector
         @return true if decryption is successful, false otherwise
     */
-    bool DecryptData(
-        const std::vector<Byte>& ciphertext,
-        std::vector<Byte>& plaintext,
-        const std::vector<Byte>& key,
-        const std::vector<Byte>& iv
-    ) {
+    bool DecryptData(const std::vector<Byte>& ciphertext, std::vector<Byte>& plaintext) {
+
+        const std::vector<Byte>& key = preSharedKey;
+        const std::vector<Byte>& iv = preSharedIV;
         
         // Create a new context
         EVP_CIPHER_CTX* ctx = EVP_CIPHER_CTX_new();
@@ -229,7 +210,7 @@ namespace Crypto {
         // Finalize the hash operation and retrieve the hash value
         std::vector<Byte> hash(EVP_MD_size(EVP_sha256()));
         unsigned int hashLen;
-        
+
         int finalStatus = EVP_DigestFinal_ex(ctx, hash.data(), &hashLen);
         if (finalStatus != 1) {
             Log::Error("Crypto::CalculateHash", "Error finalizing hash operation");

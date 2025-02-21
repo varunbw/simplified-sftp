@@ -138,11 +138,13 @@ bool FileSender::EncryptAndSend(const std::vector<Byte>& plainFileData) {
         In a normal implementation of SFTP, the file would be encrypted using the server's public key
         and decrypted using the server's private key.
         However, for simplicity, a pre-shared key is used here along with a pre-shared IV (Initialization Vector)
+        See Crypto::EncryptData() in crypto.cpp for more details
+        The pre-shared key and IV are hardcoded in crypto.hpp
 
         You can use any 256 bit key and 128 bit IV for encryption
     */
     std::vector<Byte> encryptedData;
-    bool encryptionStatus = Crypto::EncryptData(plainFileData, encryptedData, Crypto::preSharedKey, Crypto::preSharedIV);
+    bool encryptionStatus = Crypto::EncryptData(plainFileData, encryptedData);
     if (encryptionStatus == false) {
         Log::Error("FileSender::SendFile()", "Error encrypting file");
         return false;

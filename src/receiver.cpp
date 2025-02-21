@@ -214,7 +214,7 @@ bool FileReceiver::ReceiveFile(const std::string& filename) {
 
     // -- Step 2 --
     // Decrypt the Data
-    bool decryptionStatus = Crypto::DecryptData(encryptedData, decryptedData, Crypto::preSharedKey, Crypto::preSharedIV);
+    bool decryptionStatus = Crypto::DecryptData(encryptedData, decryptedData);
     if (decryptionStatus == false) {
         Log::Error("FileReceiver::ReceiveFile()", "Decryption failed");
         return false;

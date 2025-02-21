@@ -28,12 +28,7 @@ namespace Crypto {
         @param iv: the initialization vector
         @return true if encryption is successful, false otherwise
     */
-    bool EncryptData(
-        const std::vector<Byte>& plaintext,
-        std::vector<Byte>& ciphertext,
-        const std::vector<Byte>& key,
-        const std::vector<Byte>& iv
-    );
+    bool EncryptData(const std::vector<Byte>& plaintext, std::vector<Byte>& ciphertext);
 
     /*
         Decrypts the ciphertext using AES-256 in CBC mode
@@ -43,12 +38,7 @@ namespace Crypto {
         @param iv: the initialization vector
         @return true if decryption is successful, false otherwise
     */
-    bool DecryptData(
-        const std::vector<Byte>& ciphertext,
-        std::vector<Byte>& plaintext,
-        const std::vector<Byte>& key,
-        const std::vector<Byte>& iv
-    );
+    bool DecryptData(const std::vector<Byte>& ciphertext, std::vector<Byte>& plaintext);
 
     /*
         Calculates the SHA-256 hash of the given data
