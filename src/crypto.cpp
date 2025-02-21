@@ -8,9 +8,10 @@
 #include "../include/main.hpp"
 
 /*
+    Big block, ik, but just go through it.
+
     This file performs the main Encryption and Decryption operations using AES-256 in CBC mode
-    We're using the library OpenSSL for this purpose. If needed, you can look up some basic
-    tutorials on how to use OpenSSL for encryption and decryption.
+    We're using the library OpenSSL for this purpose.
 
     While it looks complicated, its far simpler to understand than implementing our own version
     of AES/S-AES from scratch. The library provides a lot of helper functions to make the process
@@ -21,13 +22,17 @@
     If you want to experiment with using some other cryptographic algorithms, or maybe try
     some other modes of operation, you can do so by changing the encryption and decryption functions.
 
+    Try putting something as simple as a Caesar cipher in there, and see how it works.
+    The only thing you need to keep in mind is that the input and output of the functions should
+    remain the same. The input is a vector of bytes, and the output is also a vector of bytes.
+
     If you change the function signature (the parameters and return type), you'll have to make
     changes in the header file and where you call the function accordingly. The rest of the program
     will remain the same.
-    
+
     The library provides a lot of cryptographic functions and algorithms. We're using the EVP
     (Envelope) interface here.
-    
+
     The main functions used here are:
     - EVP_CIPHER_CTX_new(): Creates a new cipher context
     - EVP_EncryptInit_ex(): Initializes the encryption operation
@@ -73,13 +78,19 @@ namespace Crypto {
         
         // Create a new context
         EVP_CIPHER_CTX* ctx = EVP_CIPHER_CTX_new();
-        if (!ctx)
-        return false;
+        if (ctx == nullptr) {
+            Log::Error("Crypto::EncryptData()", "Error creating cipher context\n");
+            return false;
+        }
         
-        // Initialize the encryption operation with a cipher type, key, and IV
+        /*
+            Initialize the encryption operation with a cipher type, key, and IV
+            Here, we're using AES-256 in CBC mode
+            NULL is passed for the cipher type to use the default
+        */
         int initStatus = EVP_EncryptInit_ex(ctx, EVP_aes_256_cbc(), NULL, key.data(), iv.data());
         if (initStatus != 1) {
-            std::cerr << "[ERROR] Crypto::EncryptData(): Error initializing encryption operation\n";
+            Log::Error("Crypto::EncryptData()", "Error initializing encryption operation\n");
             EVP_CIPHER_CTX_free(ctx);
             return false;
         }
@@ -87,11 +98,15 @@ namespace Crypto {
         // Resize the ciphertext vector to accommodate the encrypted data
         ciphertext.resize(plaintext.size() + EVP_CIPHER_block_size(EVP_aes_256_cbc()));
         
-        // Encrypt the plaintext
+        /*
+            Encrypts the plaintext data
+            The ciphertext is written to the ciphertext vector
+            The length of the ciphertext is returned in len
+        */
         int len;
         int encryptionStatus = EVP_EncryptUpdate(ctx, ciphertext.data(), &len, plaintext.data(), plaintext.size());
         if (encryptionStatus != 1) {
-            std::cerr << "[ERROR] Crypto::EncryptData(): Error encrypting data\n";
+            Log::Error("Crypto::EncryptData()", "Error encrypting data\n");
             EVP_CIPHER_CTX_free(ctx);
             return false;
         }
@@ -100,7 +115,7 @@ namespace Crypto {
         int ciphertextLen = len;
         int finalEncryptionStatus = EVP_EncryptFinal_ex(ctx, ciphertext.data() + len, &len);
         if (finalEncryptionStatus != 1) {
-            std::cerr << "[ERROR] Crypto::EncryptData(): Error encrypting final data\n";
+            Log::Error("Crypto::EncryptData()", "Error encrypting final data\n");
             EVP_CIPHER_CTX_free(ctx);
             return false;
         }
@@ -131,39 +146,45 @@ namespace Crypto {
         
         // Create a new context
         EVP_CIPHER_CTX* ctx = EVP_CIPHER_CTX_new();
-        if (!ctx) {
-            std::cerr << "[ERROR] Crypto::DecryptData(): Error creating cipher context\n";
+        if (ctx == nullptr) {
+            Log::Error("Crypto::DecryptData()", "Error creating cipher context\n");
             return false;
         }
         
         // Initialize the decryption operation with a cipher type, key, and IV
         int initStatus = EVP_DecryptInit_ex(ctx, EVP_aes_256_cbc(), NULL, key.data(), iv.data());
         if (initStatus != 1) {
-            std::cerr << "[ERROR] Crypto::DecryptData(): Error initializing decryption operation\n";
+            Log::Error("Crypto::DecryptData()", "Error initializing decryption operation\n");
             EVP_CIPHER_CTX_free(ctx);
             return false;
         }
         
         // Resize the plaintext vector to accommodate the decrypted data
         plaintext.resize(ciphertext.size());
-        Log::Info("Crypto::DecryptData()", "Ciphertext size: " + std::to_string(ciphertext.size()));
-        Log::Info("Crypto::DecryptData()", "Plaintext size:  " + std::to_string(plaintext.size()));
+
+        // Log the sizes of the ciphertext and plaintext
+        // Log::Info("Crypto::DecryptData()", "Ciphertext size: " + std::to_string(ciphertext.size()));
+        // Log::Info("Crypto::DecryptData()", "Plaintext size:  " + std::to_string(plaintext.size()));
         
-        // Decrypt the ciphertext
+        /*
+            Decrypts the ciphertext data
+            The plaintext is written to the plaintext vector
+            The length of the plaintext is returned in len
+        */
         int len;
         int decryptionStatus = EVP_DecryptUpdate(ctx, plaintext.data(), &len, ciphertext.data(), ciphertext.size());
         if (decryptionStatus != 1) {
-            std::cerr << "[ERROR] Crypto::DecryptData(): Error decrypting data\n";
+            Log::Error("Crypto::DecryptData()", "Error decrypting data\n");
             EVP_CIPHER_CTX_free(ctx);
             return false;
         }
 
         
-        int plaintextLen = len;
         // Decrypts the "final" data; any data that remains in a partial block. It also writes out the padding.
+        int plaintextLen = len;
         int finalDecryptionStatus = EVP_DecryptFinal_ex(ctx, plaintext.data() + len, &len);
         if (finalDecryptionStatus != 1) {
-            std::cerr << "[ERROR] Crypto::DecryptData(): Error decrypting final data\n";
+            Log::Error("Crypto::DecryptData()", "Error decrypting final data\n");
             EVP_CIPHER_CTX_free(ctx);
             return false;
         }
@@ -176,23 +197,30 @@ namespace Crypto {
         return true;
     }
 
+    /*
+        Calculates the SHA-256 hash of the given data
+        @param data: the data to be hashed
+        @return the SHA-256 hash of the data
+    */
     std::vector<Byte> CalculateHash(const std::vector<Byte>& data) {
         // Create a context for the hash operation
         EVP_MD_CTX* ctx = EVP_MD_CTX_new();
-        if (!ctx) {
+        if (ctx == nullptr) {
             Log::Error("Crypto::CalculateHash", "Error creating hash context");
             return {};
         }
 
         // Initialize the hash operation with SHA-256
-        if (EVP_DigestInit_ex(ctx, EVP_sha256(), NULL) != 1) {
+        int initStatus = EVP_DigestInit_ex(ctx, EVP_sha256(), NULL);
+        if (initStatus != 1) {
             Log::Error("Crypto::CalculateHash", "Error initializing hash operation");
             EVP_MD_CTX_free(ctx);
             return {};
         }
 
         // Provide the data to be hashed
-        if (EVP_DigestUpdate(ctx, data.data(), data.size()) != 1) {
+        int updateStatus = EVP_DigestUpdate(ctx, data.data(), data.size());
+        if (updateStatus != 1) {
             Log::Error("Crypto::CalculateHash", "Error updating hash operation");
             EVP_MD_CTX_free(ctx);
             return {};
@@ -201,7 +229,9 @@ namespace Crypto {
         // Finalize the hash operation and retrieve the hash value
         std::vector<Byte> hash(EVP_MD_size(EVP_sha256()));
         unsigned int hashLen;
-        if (EVP_DigestFinal_ex(ctx, hash.data(), &hashLen) != 1) {
+        
+        int finalStatus = EVP_DigestFinal_ex(ctx, hash.data(), &hashLen);
+        if (finalStatus != 1) {
             Log::Error("Crypto::CalculateHash", "Error finalizing hash operation");
             EVP_MD_CTX_free(ctx);
             return {};
