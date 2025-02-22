@@ -260,16 +260,23 @@ void FileSender::CloseConnection() {
 }
 
 
-int main(void) {
+int main(int argc, char* argv[]) {
+
+    if (argc != 2) {
+        Log::Error("main()", std::format("Usage: {} <file_name_to_send>", argv[0]));
+        return 1;
+    }
 
     const std::string IP("127.0.0.1");
     constexpr int port = 8080;
 
     FileSender sender(IP, port);
 
+    std::string fileNameToSend = argv[1];
+
     if (sender.ConnectToServer() == false)
         return 1;
-    if (sender.SendFile("../temp/file_to_send.txt") == false)
+    if (sender.SendFile(fileNameToSend) == false)
         return 1;
 
     return 0;

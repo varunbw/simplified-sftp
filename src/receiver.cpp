@@ -272,16 +272,23 @@ void FileReceiver::CloseConnection() {
     return;
 }
 
-int main() {
+int main(int argc, char* argv[]) {
+
+    if (argc != 2) {
+        Log::Error("main()", std::format("Usage: {} <file_name_to_save_as>", argv[0]));
+        return 1;
+    }
 
     constexpr int port = 8080;
     FileReceiver receiver(port);
+
+    std::string fileNameToSaveAs = argv[1];
 
     if (receiver.InitializeServer() == false)
         return 1;
     if (receiver.AcceptConnection() == false)
         return 1;
-    if (receiver.ReceiveFile("../temp/received_file.txt") == false)
+    if (receiver.ReceiveFile(fileNameToSaveAs) == false)
         return 1;
 
     return 0;
