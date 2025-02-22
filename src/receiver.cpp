@@ -67,30 +67,37 @@ public:
 */
 bool FileReceiver::InitializeServer() {
         
-    // Set server address information
+    /*
+        Set server address information
+        AF_INET: IPv4
+        SOCK_STREAM: TCP
+    */
     address.sin_family = AF_INET;
     address.sin_addr.s_addr = INADDR_ANY;
     address.sin_port = htons(serverPort);
     
     // Create socket file descriptor
-    if ((serverFD = socket(AF_INET, SOCK_STREAM, 0)) == 0) {
+    serverFD = socket(AF_INET, SOCK_STREAM, 0);
+    if (serverFD == 0) {
         Log::Error("FileReceiver::InitializeServer()", "Socket creation error");
         return false;
     }
 
     // Bind the socket to the port
-    if (bind(serverFD, (struct sockaddr*)&address, sizeof(address)) < 0) {
+    int bindStatus = bind(serverFD, (struct sockaddr*)&address, sizeof(address));   
+    if (bindStatus < 0) {
         Log::Error("FileReceiver::InitializeServer()", "Bind error");
         return false;
     }
 
     // Start listening for connections
-    if (listen(serverFD, 3) < 0) {
+    int listenStatus = listen(serverFD, 3);
+    if (listenStatus < 0) {
         Log::Error("FileReceiver::InitializeServer()", "Listen error");
         return false;
     }
 
-    std::cout << "[INFO] FileReceiver::InitializeServer(): Server listening on port " << serverPort << std::endl;
+    Log::Info("FileReceiver::InitializeServer()", std::format("Server listening on port {}", serverPort));
     return true;
 }
 
@@ -100,6 +107,7 @@ bool FileReceiver::InitializeServer() {
 */
 bool FileReceiver::AcceptConnection() {
     
+    // Accept a connection from the client
     clientSocket = accept(serverFD, (struct sockaddr*)&address, (socklen_t*)&addrlen);
     
     if (clientSocket < 0) {
@@ -121,6 +129,7 @@ bool FileReceiver::ReadFromClient(std::vector<Byte>& encryptedData) {
     // Read the size of file to be received
     size_t fileSize = -1;
     if (read(clientSocket, &fileSize, sizeof(fileSize)) != sizeof(fileSize)) {
+        // This ensures that the file size is read correctly, and is not corrupted
         Log::Error("FileReceiver::ReceiveFile()", "Error reading file size");
         return false;
     }
@@ -130,12 +139,14 @@ bool FileReceiver::ReadFromClient(std::vector<Byte>& encryptedData) {
     size_t totalBytesRead = 0;
     std::string buffer(1024, '\0');
 
+    // Main loop to read file data
     while (totalBytesRead < fileSize) {
         /*
-            While reading file data, we might accidently read the hash that the client
-            will send as well.
+            While reading file data, we might accidently read any further data that
+            the client will send as well (in this program, we're reading the hash of 
+            file later as well).
             To avoid this, we need to calculate how much data to read each iteration, so
-            that we don't accidently read the hash as part of the file as well
+            that we don't accidently read more than we're supposed to.
 
             `bytesToRead` will read either `buffer.size()` data, or the amount of data
             that's yet to be read
@@ -171,7 +182,8 @@ bool FileReceiver::ReadAndVerifyHash(std::vector<Byte>& decryptedData) {
 
     // Read hash sent by sender
     std::vector<Byte> receivedHash(32);
-    if (read(clientSocket, receivedHash.data(), receivedHash.size()) != receivedHash.size()) {
+    int bytesRead = read(clientSocket, receivedHash.data(), receivedHash.size());
+    if (bytesRead != receivedHash.size()) {
         Log::Error("FileReceiver::ReceiveFile()", "Error reading hash");
         return false;
     }
