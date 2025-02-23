@@ -50,8 +50,6 @@ namespace Crypto {
         Encrypts the plaintext using AES-256 in CBC mode
         @param plaintext: the plaintext to be encrypted
         @param ciphertext: the encrypted data
-        @param key: the encryption key
-        @param iv: the initialization vector
         @return true if encryption is successful, false otherwise
     */
     bool EncryptData(const std::vector<Byte>& plaintext, std::vector<Byte>& ciphertext) {
@@ -116,8 +114,6 @@ namespace Crypto {
         Decrypts the ciphertext using AES-256 in CBC mode
         @param ciphertext: the ciphertext to be decrypted
         @param plaintext: the decrypted data
-        @param key: the decryption key
-        @param iv: the initialization vector
         @return true if decryption is successful, false otherwise
     */
     bool DecryptData(const std::vector<Byte>& ciphertext, std::vector<Byte>& plaintext) {
@@ -223,4 +219,40 @@ namespace Crypto {
 
         return hash;
     }
+
+
+    /*
+        Below are functions implemention one of the most basic encryption algorithms, the Caesar cipher.
+        The Caesar cipher is a substitution cipher where each letter in the plaintext is shifted by a
+        fixed number of positions in the alphabet. In this case, we're using a shift of 3.
+        This is just an example to show how you can implement your own encryption and decryption functions.
+        You can replace these functions with any other encryption algorithm you want.
+        The EncryptData and DecryptData functions are the same as the ones above, but they use the Caesar cipher
+        instead of AES-256.
+
+        Note that this is not a secure encryption method and should not be used for any real-world applications.
+    */
+    /*
+    bool EncryptData(const std::vector<Byte>& plaintext, std::vector<Byte>& ciphertext) {
+
+        const int shift = 3; // Shift value for Caesar cipher
+        ciphertext.resize(plaintext.size());
+        for (size_t i = 0; i < plaintext.size(); ++i) {
+            ciphertext[i] = plaintext[i] + shift;
+        }
+
+        return true;
+    }
+    
+    bool DecryptData(const std::vector<Byte>& ciphertext, std::vector<Byte>& plaintext) {
+
+        const int shift = 3; // Shift value for Caesar cipher
+        plaintext.resize(ciphertext.size());
+        for (size_t i = 0; i < ciphertext.size(); ++i) {
+            plaintext[i] = ciphertext[i] - shift;
+        }
+
+        return true;
+    }
+    */
 };
