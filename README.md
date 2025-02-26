@@ -8,6 +8,13 @@ Unlike a proper implementation of S-SFTP, this version does not support director
 
 ## Downloading and Compiling
 
+CMake is used to compile the code. The following instructions are for Ubuntu 22.04, but should work on any Linux distribution with minor modifications. If you don't have CMake installed, you can install it with:
+```bash
+sudo apt-get install cmake
+```
+
+### Steps
+
 1. Clone the repository:
 ```bash
 git clone https://github.com/varunbw/simplified-sftp.git
@@ -21,22 +28,23 @@ sudo apt-get install libssl-dev
 
 3. Compile and run the code
 
-For now, a proper build system is not in place. You can compile the code using the following commands in `src/`:
-
-### Server
-Compile server with `server.cpp`, `crypto.cpp`, and `logger.cpp`:
 ```bash
-./run.sh server crypto logger
+cd build
+cmake ..
+make
 ```
 
-### Client
-Compile client with `client.cpp`, `crypto.cpp`, and `logger.cpp`:
+## Running the Code
+
+1. Run the server:
 ```bash
-./run.sh client crypto logger
+./receiver.out <file_name_to_save_as>
 ```
 
-View [run.sh](src/run.sh) for more details.
-
+2. Run the client:
+```bash
+./sender.out <file_name_to_send>
+```
 
 # License
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
