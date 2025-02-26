@@ -8,12 +8,32 @@
 
 #include "../include/main.hpp"
 
+/*
+    [IMPORTANT NOTE]
+    1. This implementation of SFTP is not a complete implementation of the SFTP protocol.
+    2. This is not secure, and should not be used in production.
+    3. This is meant for educational purposes only.
+*/
+
+/*
+    `FileReceiver` is a class to receive files from the sender
+    
+    Throughout the program, the term "client" is used to refer to the sender, and
+    "server" is used to refer to the receiver.
+
+    However, normally, the client AND the server can do both; send and receive files.
+    I have not called the class `Server` for this very reason, a client can receive files
+    as well. The class `FileSender` is not called `Client` for the same reason.
+    
+    In this implementation, the client is the sender, and the server is the receiver.
+    Get used to it for this program, but remember that this is not the case in a real SFTP.
+*/
 class FileReceiver {
 private:
     // Socket FD for the sender (client)
     int clientSocket;
 
-    // Server information
+    // Receiver (server) information
     int serverFD;
     sockaddr_in address;
     int addrlen;
@@ -275,13 +295,14 @@ void FileReceiver::CloseConnection() {
 
 int main(int argc, char* argv[]) {
 
+    // Check if the correct arguments are passed
     if (argc != 2) {
         Log::Error("main()", std::format("Usage: {} <file_name_to_save_as>", argv[0]));
         return 1;
     }
 
-    constexpr int port = 8080;
-    FileReceiver receiver(port);
+    constexpr int serverPort = 8080;
+    FileReceiver receiver(serverPort);
 
     std::string fileNameToSaveAs = argv[1];
 

@@ -8,12 +8,33 @@
 
 #include "../include/main.hpp"
 
+/*
+    [IMPORTANT NOTE]
+    1. This implementation of SFTP is not a complete implementation of the SFTP protocol.
+    2. This is not secure, and should not be used in production.
+    3. This is meant for educational purposes only.
+*/
+
+/*
+    `FileSender` is a class to send files to the receiver
+    
+    Throughout the program, the term "client" is used to refer to the sender, and
+    "server" is used to refer to the receiver.
+
+    However, normally, the client AND the server can do both; send and receive files.
+    I have not called the class `Client` for this very reason, a server can send files
+    as well. The class `FileReceiver` is not called `Server` for the same reason.
+    
+    In this implementation, the client is the sender, and the server is the receiver.
+    Get used to it for this program, but remember that this is not the case in a real SFTP.
+*/
+
 class FileSender {
 private:
     // Sender (client) socket
     int socketFD;
 
-    // Server address information
+    // Receiver (server) address information
     sockaddr_in serverAddr;
     std::string serverIP;
     int serverPort;
@@ -269,21 +290,23 @@ void FileSender::CloseConnection() {
 
 int main(int argc, char* argv[]) {
 
+    // Check if the correct arguments are passed
     if (argc != 2) {
         Log::Error("main()", std::format("Usage: {} <file_name_to_send>", argv[0]));
         return 1;
     }
 
-    const std::string IP("127.0.0.1");
-    constexpr int port = 8080;
+    // 127.0.0.1 - localhost
+    const std::string serverIP("127.0.0.1");
+    constexpr int serverPort = 8080;
 
-    FileSender sender(IP, port);
-
-    std::string fileNameToSend = argv[1];
+    FileSender sender(serverIP, serverPort);
+    
+    std::string fileToSend = argv[1];
 
     if (sender.ConnectToServer() == false)
         return 1;
-    if (sender.SendFile(fileNameToSend) == false)
+    if (sender.SendFile(fileToSend) == false)
         return 1;
 
     return 0;
