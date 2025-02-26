@@ -70,7 +70,8 @@ bool FileReceiver::InitializeServer() {
     /*
         Set server address information
         AF_INET: IPv4
-        SOCK_STREAM: TCP
+        INADDR_ANY: Bind to any address
+        htons: Convert port number to network byte order
     */
     address.sin_family = AF_INET;
     address.sin_addr.s_addr = INADDR_ANY;

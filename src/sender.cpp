@@ -78,13 +78,15 @@ bool FileSender::ConnectToServer() {
     }
 
     // Convert addresses from text to binary form
-    if (inet_pton(AF_INET, serverIP.c_str(), &serverAddr.sin_addr) <= 0) {
+    int inetStatus = inet_pton(AF_INET, serverIP.c_str(), &serverAddr.sin_addr);
+    if (inetStatus <= 0) {
         Log::Error("FileSender::ConnectToServer()", "Invalid address/Address not supported");
         return false;
     }
 
     // Connect to the server
-    if (connect(socketFD, (struct sockaddr*)&serverAddr, sizeof(serverAddr)) < 0) {
+    int connectStatus = connect(socketFD, (struct sockaddr*)&serverAddr, sizeof(serverAddr));
+    if (connectStatus < 0) {
         Log::Error("FileSender::ConnectToServer()", "Connection failed");
         return false;
     }
@@ -199,7 +201,11 @@ bool FileSender::CalculateHashAndSend(const std::vector<Byte>& data) {
         return false;
     }
 
-    // Send hash data to server
+    /*
+        Normally, you'd also encrypt the hash of the file using `Crypto::EncryptData()`
+        and send it to the server.
+        But for simplicity, the hash is sent as is.
+    */
     int sentBytes = send(socketFD, &hash[0], hash.size(), 0);
     if (sentBytes < 0) {
         Log::Error("FileSender::SendFile()", "Error sending hash");
@@ -245,6 +251,7 @@ bool FileSender::SendFile(const std::string& filename) {
     Log::Success("FileSender::SendFile()", std::format("File {} sent successfully!", filename));
     return true;
 }
+
 
 /*
     Close the connection
