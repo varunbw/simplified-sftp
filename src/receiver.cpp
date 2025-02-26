@@ -170,6 +170,7 @@ bool FileReceiver::ReadFromClient(std::vector<Byte>& encryptedData) {
         return false;
     }
 
+
     return true;
 }
 
@@ -212,6 +213,9 @@ bool FileReceiver::ReadAndVerifyHash(std::vector<Byte>& decryptedData) {
     @return true if file is received successfully, false otherwise
 */
 bool FileReceiver::ReceiveFile(const std::string& filename) {
+
+    auto startDuration = TimeNow();
+    Log::Info("FileReceiver::ReceiveFile()", "Receiving file from client...");
     
     std::vector<Byte> encryptedData;
     std::vector<Byte> decryptedData;
@@ -249,6 +253,9 @@ bool FileReceiver::ReceiveFile(const std::string& filename) {
     }
     outfile.write(reinterpret_cast<const char*>(decryptedData.data()), decryptedData.size());
     outfile.close();
+
+    auto endDuration = TimeNow();
+    Log::Info("FileReceiver::ReceiveFile()", TimeElapsed(startDuration, endDuration, TimePrecision::MILLISECONDS, 1));
 
     Log::Success("FileReceiver::ReceiveFile()", std::format("File saved as {} successfully!", filename));
     return true;

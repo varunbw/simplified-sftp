@@ -216,6 +216,9 @@ bool FileSender::CalculateHashAndSend(const std::vector<Byte>& data) {
     @return true if file is sent successfully, false otherwise
 */
 bool FileSender::SendFile(const std::string& filename) {
+
+    auto startDuration = TimeNow();
+    Log::Info("FileSender::SendFile()", std::format("Sending file {} to server...", filename));
     
     // -- Step 1 --
     // Load the file into a vector
@@ -241,6 +244,9 @@ bool FileSender::SendFile(const std::string& filename) {
         Log::Error("FileSender::SendFile()", "Error sending hash");
         return false;
     }
+
+    auto endDuration = TimeNow();
+    Log::Info("FileSender::SendFile()", TimeElapsed(startDuration, endDuration, TimePrecision::MILLISECONDS, 1));
 
     Log::Success("FileSender::SendFile()", std::format("File {} sent successfully!", filename));
     return true;
