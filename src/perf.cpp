@@ -3,6 +3,7 @@
 #include <string>
 
 #include "../include/perf.hpp"
+#include "../include/util.hpp"
 
 /* 
     @brief Gives the current system time in microseconds

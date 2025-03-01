@@ -1,3 +1,7 @@
+#include <iostream>
+#include <string>
+#include <format>
+
 #include "../include/logger.hpp"
 
 namespace Log {

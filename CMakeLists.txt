@@ -19,6 +19,7 @@ add_executable(receiver.out
     src/receiver.cpp
     src/crypto.cpp
     src/logger.cpp
+    src/perf.cpp
 )
 
 # Link the OpenSSL library to the receiver executable
@@ -29,6 +30,7 @@ add_executable(sender.out
     src/sender.cpp
     src/crypto.cpp
     src/logger.cpp
+    src/perf.cpp
 )
 
 # Link the OpenSSL library to the sender executable
