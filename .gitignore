@@ -4,6 +4,7 @@
 # executables
 *.exe
 *.out
+build/
 
 # temporary files
 temp/
