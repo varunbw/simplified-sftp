@@ -6,6 +6,10 @@ This is a barebones version of the Secure File Transfer Protocol (SFTP), which i
 
 Unlike a proper implementation of S-SFTP, this version does not support directories, file attributes, or file permissions. It is also not optimized for performance. The goal of this project is to provide a simple example of how to use the OpenSSL library (or just about anything else) to encrypt and decrypt files. A lot of the code is not exactly what one would call best practice when dealing with files, networking, and security. Emphasis is put on its simplicity.
 
+## Prerequisites
+- CMake
+- OpenSSL library
+
 ## Downloading and Compiling
 
 CMake is used to compile the code. The following instructions are for Ubuntu 22.04, but should work on any Linux distribution with minor modifications. If you don't have CMake installed, you can install it with:
@@ -29,12 +33,14 @@ sudo apt-get install libssl-dev
 3. Compile and run the code
 
 ```bash
-cd build
+mkdir build && cd build
 cmake ..
 make
 ```
 
-## Running the Code
+Note: Ensure that the OpenSSL library is installed and accessible in your system's library path.
+
+## Running the program
 
 1. Run the server:
 ```bash
@@ -45,6 +51,12 @@ make
 ```bash
 ./sender.out <file_name_to_send>
 ```
+
+## Configuration
+
+You can configure the server and client by modifying the source code to change the port number and IP address. The default port is 8080 and the default IP address is localhost.
+
+The program uses a hardcoded key and IV for encryption and decryption. You can change these values in the [crypto.hpp](include/crypto.hpp) file.
 
 # License
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
