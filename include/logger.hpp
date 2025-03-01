@@ -4,10 +4,7 @@
 #include <iostream>
 #include <format>
 
-#define RED_START "\033[1;31m"
-#define GREEN_START "\033[1;32m"
-#define YELLOW_START "\033[1;33m"
-#define RESET_COLOR "\033[0m"
+#include "utils.hpp"
 
 namespace Log {
     void Error(const std::string& functionName, const std::string& message);

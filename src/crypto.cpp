@@ -5,7 +5,9 @@
 #include <vector>
 #include <cstring>
 
-#include "../include/main.hpp"
+#include "../include/crypto.hpp"
+#include "../include/logger.hpp"
+#include "../include/utils.hpp"
 
 /*
     Big block, ik, but just go through it.
