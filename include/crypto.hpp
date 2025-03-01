@@ -6,6 +6,18 @@
 
 namespace Crypto {
 
+    /*
+        Normally, SFTP will use asymmetric encryption between the client and server,
+        and then negotiate a symmetric encryption key to use for the session.
+
+        In a real-world application, you would use a secure key exchange algorithm
+        to negotiate the key and IV.
+        For example, you could use Diffie-Hellman key exchange to generate a shared secret,
+        and then use that secret to derive the key and IV using a key derivation function (KDF).
+
+        For this implementation, we will use a pre-shared key and IV for AES-256 encryption.
+    */
+
     // Random 32 bytes = 256 bits key
     const std::vector<Byte> preSharedKey = {
         0x2b, 0x7e, 0x15, 0x16, 0x28, 0xae, 0xd2, 0xa6,

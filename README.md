@@ -6,6 +6,8 @@ This is a barebones version of the Secure File Transfer Protocol (SFTP), which i
 
 Unlike a proper implementation of S-SFTP, this version does not support directories, file attributes, or file permissions. It is also not optimized for performance. The goal of this project is to provide a simple example of how to use the OpenSSL library (or just about anything else) to encrypt and decrypt files. A lot of the code is not exactly what one would call best practice when dealing with files, networking, and security. Emphasis is put on its simplicity.
 
+Even for a "simplfied" version, the source code might look complex to some (aah C++). However, most of it is just error handling, and explanatory comments. If you remove those, its actually quite simple.
+
 ## Prerequisites
 - CMake
 - OpenSSL library
@@ -37,8 +39,6 @@ mkdir build && cd build
 cmake ..
 make
 ```
-
-Note: Ensure that the OpenSSL library is installed and accessible in your system's library path.
 
 ## Running the program
 

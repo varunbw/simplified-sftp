@@ -17,7 +17,7 @@
 
     While it looks complicated, its far simpler to understand than implementing our own version
     of AES/S-AES from scratch. The library provides a lot of helper functions to make the process
-    easier.
+    easier. There are a lot of lines of code here, but most of them are just error handling.
 
     The whole program is meant to be modular, meaning that you can put anything you want in the
     encryption and decryption functions, while having to make minor changes anywhere else.
