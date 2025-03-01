@@ -2,6 +2,8 @@
 
 Project is WIP, I'll be refining it over time.
 
+> You are now on the `anaylsis` branch. The protocol is the same as in the `main` branch, the only difference being that there is more code for performance profiling (such as how long a function takes to run). Since it is not needed for the protocol, it is not included in the `main` branch.
+
 This is a barebones version of the Secure File Transfer Protocol (SFTP), which is meant for educational purposes. The OpenSSL library is used for encryption and decryption of files.
 
 Unlike a proper implementation of S-SFTP, this version does not support directories, file attributes, or file permissions. It is also not optimized for performance. The goal of this project is to provide a simple example of how to use the OpenSSL library (or just about anything else) to encrypt and decrypt files. A lot of the code is not exactly what one would call best practice when dealing with files, networking, and security. Emphasis is put on its simplicity.
