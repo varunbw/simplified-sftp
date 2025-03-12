@@ -97,21 +97,21 @@ bool FileSender::ConnectToServer() {
     // Create a socket - IPv4, TCP
     socketFD = socket(AF_INET, SOCK_STREAM, 0);
     if (socketFD < 0) {
-        Log::Error("FileSender::ConnectToServer()", "Socket creation error");
+        Log::Error("ConnectToServer()", "Socket creation error");
         return false;
     }
 
     // Convert addresses from text to binary form
     int inetStatus = inet_pton(AF_INET, serverIP.c_str(), &serverAddr.sin_addr);
     if (inetStatus <= 0) {
-        Log::Error("FileSender::ConnectToServer()", "Invalid address/Address not supported");
+        Log::Error("ConnectToServer()", "Invalid address/Address not supported");
         return false;
     }
 
     // Connect to the server
     int connectStatus = connect(socketFD, (struct sockaddr*)&serverAddr, sizeof(serverAddr));
     if (connectStatus < 0) {
-        Log::Error("FileSender::ConnectToServer()", "Connection failed");
+        Log::Error("ConnectToServer()", "Connection failed");
         return false;
     }
 
@@ -132,7 +132,7 @@ bool FileSender::LoadFileIntoVector(const std::string& filename, std::vector<Byt
     // Open file in binary mode
     std::ifstream infile(filename, std::ios::binary);
     if (infile.fail()) {
-        Log::Error("FileSender::SendFile()", std::format("Failed to open file '{}'", filename));
+        Log::Error("LoadFileIntoVector()", std::format("Failed to open file '{}'", filename));
         return false;
     }
 
@@ -172,7 +172,7 @@ bool FileSender::EncryptAndSend(const std::vector<Byte>& plainFileData) {
     std::vector<Byte> encryptedData;
     bool encryptionStatus = Crypto::EncryptData(plainFileData, encryptedData);
     if (encryptionStatus == false) {
-        Log::Error("FileSender::SendFile()", "Error encrypting file");
+        Log::Error("EncryptAndSend()", "Error encrypting file");
         return false;
     }
 
@@ -187,7 +187,7 @@ bool FileSender::EncryptAndSend(const std::vector<Byte>& plainFileData) {
     size_t fileSize = encryptedData.size();
     int bytesSent = send(socketFD, &fileSize, sizeof(fileSize), 0);
     if (bytesSent < 0) {
-        Log::Error("FileSender::SendFile()", "Error sending file size");
+        Log::Error("EncryptAndSend()", "Error sending file size");
         return false;
     }
     
@@ -200,7 +200,7 @@ bool FileSender::EncryptAndSend(const std::vector<Byte>& plainFileData) {
 
         int sentBytes = send(socketFD, encryptedData.data() + totalBytesSent, chunkSize, 0);
         if (sentBytes < 0) {
-            Log::Error("FileSender::SendFile()", "Error sending encrypted file");
+            Log::Error("EncryptAndSend()", "Error sending encrypted file");
             return false;
         }
 
@@ -221,7 +221,7 @@ bool FileSender::CalculateHashAndSend(const std::vector<Byte>& data) {
     // Calculate hash of the file
     std::vector<Byte> hash = Crypto::CalculateHash(data);
     if (hash.empty()) {
-        Log::Error("FileSender::SendFile()", "Error calculating hash");
+        Log::Error("CalculateHashAndSend()", "Error calculating hash");
         return false;
     }
 
@@ -232,7 +232,7 @@ bool FileSender::CalculateHashAndSend(const std::vector<Byte>& data) {
     */
     int sentBytes = send(socketFD, &hash[0], hash.size(), 0);
     if (sentBytes < 0) {
-        Log::Error("FileSender::SendFile()", "Error sending hash");
+        Log::Error("CalculateHashAndSend()", "Error sending hash");
         return false;
     }
 
@@ -252,7 +252,7 @@ bool FileSender::SendFile(const std::string& filename) {
     std::vector<Byte> plainFileData;
     bool loadedData = LoadFileIntoVector(filename, plainFileData);
     if (loadedData == false) {
-        Log::Error("FileSender::SendFile()", "Error loading file");
+        Log::Error("SendFile()", "Error loading file");
         return false;
     }
     
@@ -260,7 +260,7 @@ bool FileSender::SendFile(const std::string& filename) {
     // Encrypt and send the file to the server
     bool sentToServer = EncryptAndSend(plainFileData);
     if (sentToServer == false) {
-        Log::Error("FileSender::SendFile()", "Error sending encrypted file");
+        Log::Error("SendFile()", "Error sending encrypted file");
         return false;
     }
     
@@ -268,11 +268,11 @@ bool FileSender::SendFile(const std::string& filename) {
     // Calculate hash and send it to the server
     bool sentHash = CalculateHashAndSend(plainFileData);
     if (sentHash == false) {
-        Log::Error("FileSender::SendFile()", "Error sending hash");
+        Log::Error("SendFile()", "Error sending hash");
         return false;
     }
 
-    Log::Success("FileSender::SendFile()", std::format("File {} sent successfully!", filename));
+    Log::Success("SendFile()", std::format("File {} sent successfully!", filename));
     return true;
 }
 
@@ -292,6 +292,8 @@ void FileSender::CloseConnection() {
 
 
 int main(int argc, char* argv[]) {
+
+    std::cout << std::endl;
 
     // Check if the correct arguments are passed
     if (argc != 2) {
