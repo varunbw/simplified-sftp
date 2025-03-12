@@ -143,12 +143,17 @@ bool FileSender::EncryptAndSend(const std::vector<Byte>& plainFileData) {
 
         You can use any 256 bit key and 128 bit IV for encryption
     */
+
+    auto encryptionStart = TimeNow();
+    
     std::vector<Byte> encryptedData;
     bool encryptionStatus = Crypto::EncryptData(plainFileData, encryptedData);
     if (encryptionStatus == false) {
-        Log::Error("FileSender::SendFile()", "Error encrypting file");
+        Log::Error("FileSender::EncryptAndSend()", "Error encrypting file");
         return false;
     }
+
+    Log::Info("FileSender::EncryptAndSend()", std::format("      Encryption - {}", TimeElapsed(encryptionStart, TimeNow(), TimePrecision::MILLISECONDS, 1)));
 
     /*
         Send size of encrypted data to the server
@@ -158,10 +163,13 @@ bool FileSender::EncryptAndSend(const std::vector<Byte>& plainFileData) {
         will change the size of the data (padding will be added)
         Hence, encryption is carried first, then the size of the vector is taken
     */
+
+    auto sendingSizeStart = TimeNow();
+    
     size_t fileSize = encryptedData.size();
     int bytesSent = send(socketFD, &fileSize, sizeof(fileSize), 0);
     if (bytesSent < 0) {
-        Log::Error("FileSender::SendFile()", "Error sending file size");
+        Log::Error("FileSender::EncryptAndSend()", "Error sending file size");
         return false;
     }
     
@@ -174,12 +182,13 @@ bool FileSender::EncryptAndSend(const std::vector<Byte>& plainFileData) {
 
         int sentBytes = send(socketFD, encryptedData.data() + totalBytesSent, chunkSize, 0);
         if (sentBytes < 0) {
-            Log::Error("FileSender::SendFile()", "Error sending encrypted file");
+            Log::Error("FileSender::EncryptAndSend()", "Error sending encrypted file");
             return false;
         }
 
         totalBytesSent += chunkSize;
     }
+    Log::Info("FileSender::EncryptAndSend()", std::format("    Sending file - {}", TimeElapsed(sendingSizeStart, TimeNow(), TimePrecision::MILLISECONDS, 1)));
 
     return true;
 }
@@ -193,18 +202,22 @@ bool FileSender::EncryptAndSend(const std::vector<Byte>& plainFileData) {
 bool FileSender::CalculateHashAndSend(const std::vector<Byte>& data) {
 
     // Calculate hash of the file
+    auto hashStart = TimeNow();
     std::vector<Byte> hash = Crypto::CalculateHash(data);
     if (hash.empty()) {
-        Log::Error("FileSender::SendFile()", "Error calculating hash");
+        Log::Error("FileSender::CalculateHashAndSend()", "Error calculating hash");
         return false;
     }
+    Log::Info("FileSender::CalculateHashAndSend()", std::format("Hash calculation - {}", TimeElapsed(hashStart, TimeNow(), TimePrecision::MILLISECONDS, 1)));
 
     // Send hash data to server
+    auto sendingHashStart = TimeNow();
     int sentBytes = send(socketFD, &hash[0], hash.size(), 0);
     if (sentBytes < 0) {
-        Log::Error("FileSender::SendFile()", "Error sending hash");
+        Log::Error("FileSender::CalculateHashAndSend()", "Error sending hash");
         return false;
     }
+    Log::Info("FileSender::CalculateHashAndSend()", std::format("    Sending hash - {}", TimeElapsed(sendingHashStart, TimeNow(), TimePrecision::MILLISECONDS, 1)));
 
     return true;
 }
@@ -222,12 +235,15 @@ bool FileSender::SendFile(const std::string& filename) {
     
     // -- Step 1 --
     // Load the file into a vector
+    auto loadingFileDuration = TimeNow();
     std::vector<Byte> plainFileData;
     bool loadedData = LoadFileIntoVector(filename, plainFileData);
     if (loadedData == false) {
         Log::Error("FileSender::SendFile()", "Error loading file");
         return false;
     }
+    Log::Info("FileSender::SendFile()", std::format("    Loading file - {}", TimeElapsed(loadingFileDuration, TimeNow(), TimePrecision::MILLISECONDS, 1)));
+    
     
     // -- Step 2 --
     // Encrypt and send the file to the server
@@ -237,6 +253,7 @@ bool FileSender::SendFile(const std::string& filename) {
         return false;
     }
     
+
     // -- Step 3 --
     // Calculate hash and send it to the server
     bool sentHash = CalculateHashAndSend(plainFileData);
@@ -245,9 +262,7 @@ bool FileSender::SendFile(const std::string& filename) {
         return false;
     }
 
-    auto endDuration = TimeNow();
-    Log::Info("FileSender::SendFile()", TimeElapsed(startDuration, endDuration, TimePrecision::MILLISECONDS, 1));
-
+    Log::Info("FileSender::SendFile()", std::format("Complete sending operation took {}", TimeElapsed(startDuration, TimeNow(), TimePrecision::MILLISECONDS, 1)));
     Log::Success("FileSender::SendFile()", std::format("File {} sent successfully!", filename));
     return true;
 }

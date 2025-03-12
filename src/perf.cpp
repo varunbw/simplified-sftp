@@ -36,19 +36,19 @@ std::string TimeElapsed(TimePoint start, TimePoint end, TimePrecision precision,
     if (precision ==  TimePrecision::MICROSECONDS) {
         std::chrono::duration<double, std::micro> duration = end - start;
         double elapsed = duration.count() / division;
-        res = std::string("Time elapsed: " + std::to_string(elapsed) + " us\n");
+        res = std::string(std::to_string(elapsed) + " us");
     }
     
     else if (precision ==  TimePrecision::MILLISECONDS) {
         std::chrono::duration<double, std::milli> duration = end - start;
         double elapsed = duration.count() / division;
-        res = std::string("Time elapsed: " + std::to_string(elapsed) + " ms\n");
+        res = std::string(std::to_string(elapsed) + " ms");
     }
 
     else if (precision ==  TimePrecision::SECONDS) {
         std::chrono::duration<double> duration = end - start;
         double elapsed = duration.count() / division;
-        res = std::string("Time elapsed: " + std::to_string(elapsed) + " s\n");
+        res = std::string(std::to_string(elapsed) + " s");
     }
 
     else {
