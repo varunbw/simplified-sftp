@@ -10,14 +10,14 @@ namespace Log {
 
     void Success(const std::string& functionName, const std::string& message) {
         std::cout << std::format(
-            GREEN_START "[INFO] {}: {}\n" RESET_COLOR,
+            GREEN_START "[SUCCESS] {}: {}\n" RESET_COLOR,
             functionName, message
         );
     }
 
     void Info(const std::string& functionName, const std::string& message) {
         std::cout << std::format(
-            "[INFO] {}: {}\n",
+            "{}: {}\n",
             functionName, message
         );
     }
