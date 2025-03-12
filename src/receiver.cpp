@@ -102,25 +102,25 @@ bool FileReceiver::InitializeServer() {
     // Create socket file descriptor
     serverFD = socket(AF_INET, SOCK_STREAM, 0);
     if (serverFD == 0) {
-        Log::Error("FileReceiver::InitializeServer()", "Socket creation error");
+        Log::Error("InitializeServer()", "Socket creation error");
         return false;
     }
 
     // Bind the socket to the port
     int bindStatus = bind(serverFD, (struct sockaddr*)&address, sizeof(address));   
     if (bindStatus < 0) {
-        Log::Error("FileReceiver::InitializeServer()", "Bind error");
+        Log::Error("InitializeServer()", "Bind error");
         return false;
     }
 
     // Start listening for connections
     int listenStatus = listen(serverFD, 3);
     if (listenStatus < 0) {
-        Log::Error("FileReceiver::InitializeServer()", "Listen error");
+        Log::Error("InitializeServer()", "Listen error");
         return false;
     }
 
-    Log::Info("FileReceiver::InitializeServer()", std::format("Server listening on port {}", serverPort));
+    Log::Info("InitializeServer()", std::format("Server listening on port {}", serverPort));
     return true;
 }
 
@@ -134,7 +134,7 @@ bool FileReceiver::AcceptConnection() {
     clientSocket = accept(serverFD, (struct sockaddr*)&address, (socklen_t*)&addrlen);
     
     if (clientSocket < 0) {
-        Log::Error("FileReceiver::AcceptConnection()", "Accept error");
+        Log::Error("AcceptConnection()", "Accept error");
         return false;
     }
     
@@ -153,7 +153,7 @@ bool FileReceiver::ReadFromClient(std::vector<Byte>& encryptedData) {
     size_t fileSize = -1;
     if (read(clientSocket, &fileSize, sizeof(fileSize)) != sizeof(fileSize)) {
         // This ensures that the file size is read correctly, and is not corrupted
-        Log::Error("FileReceiver::ReceiveFile()", "Error reading file size");
+        Log::Error("ReadFromClient()", "Error reading file size");
         return false;
     }
 
@@ -178,7 +178,7 @@ bool FileReceiver::ReadFromClient(std::vector<Byte>& encryptedData) {
         bytesRead = read(clientSocket, &buffer[0], bytesToRead);
 
         if (bytesRead <= 0) {
-            Log::Error("FileReceiver::ReceiveFile()", "Error reading file data");
+            Log::Error("ReadFromClient()", "Error reading file data");
             return false;
         }
 
@@ -189,7 +189,7 @@ bool FileReceiver::ReadFromClient(std::vector<Byte>& encryptedData) {
 
     // Verify that the file data was read correctly
     if (totalBytesRead != fileSize) {
-        Log::Error("FileReceiver::ReceiveFile()", std::format("File size mismatch, expected {} bytes, but read {} bytes", fileSize, totalBytesRead));
+        Log::Error("ReadFromClient()", std::format("File size mismatch, expected {} bytes, but read {} bytes", fileSize, totalBytesRead));
         return false;
     }
 
@@ -207,20 +207,20 @@ bool FileReceiver::ReadAndVerifyHash(std::vector<Byte>& decryptedData) {
     std::vector<Byte> receivedHash(32);
     int bytesRead = read(clientSocket, receivedHash.data(), receivedHash.size());
     if (bytesRead != receivedHash.size()) {
-        Log::Error("FileReceiver::ReceiveFile()", "Error reading hash");
+        Log::Error("ReadAndVerifyHash()", "Error reading hash");
         return false;
     }
 
     // Calculate hash of decrypted data
     std::vector<Byte> hash = Crypto::CalculateHash(decryptedData);
     if (hash.empty()) {
-        Log::Error("FileReceiver::ReceiveFile()", "Error calculating hash");
+        Log::Error("ReadAndVerifyHash()", "Error calculating hash");
         return false;
     }
 
     // Compare the received hash with the calculated hash
     if (hash != receivedHash) {
-        Log::Error("FileReceiver::ReceiveFile()", "Hash mismatch, file contents are invalid");
+        Log::Error("ReadAndVerifyHash()", "Hash mismatch, file contents are invalid");
         return false;
     }
 
@@ -243,7 +243,7 @@ bool FileReceiver::ReceiveFile(const std::string& filename) {
     // Read the file size, and file sent by the client
     bool readStatus = ReadFromClient(encryptedData);
     if (readStatus == false) {
-        Log::Error("FileReceiver::ReceiveFile()", "Error reading file sent by client");
+        Log::Error("ReceiveFile()", "Error reading file sent by client");
         return false;
     }
 
@@ -251,7 +251,7 @@ bool FileReceiver::ReceiveFile(const std::string& filename) {
     // Decrypt the Data
     bool decryptionStatus = Crypto::DecryptData(encryptedData, decryptedData);
     if (decryptionStatus == false) {
-        Log::Error("FileReceiver::ReceiveFile()", "Decryption failed");
+        Log::Error("ReceiveFile()", "Decryption failed");
         return false;
     }
 
@@ -259,7 +259,7 @@ bool FileReceiver::ReceiveFile(const std::string& filename) {
     // Verify the hash of the decrypted data
     bool hashStatus = ReadAndVerifyHash(decryptedData);
     if (hashStatus == false) {
-        Log::Error("FileReceiver::ReceiveFile()", "Error verifying hash");
+        Log::Error("ReceiveFile()", "Error verifying hash");
         return false;
     }
 
@@ -267,13 +267,13 @@ bool FileReceiver::ReceiveFile(const std::string& filename) {
     // Write decrypted Data to file
     std::ofstream outfile(filename, std::ios::binary);
     if (!outfile) {
-        Log::Error("FileReceiver::ReceiveFile()", std::format("Failed to create file '{}'", filename));
+        Log::Error("ReceiveFile()", std::format("Failed to create file '{}'", filename));
         return false;
     }
     outfile.write(reinterpret_cast<const char*>(decryptedData.data()), decryptedData.size());
     outfile.close();
 
-    Log::Success("FileReceiver::ReceiveFile()", std::format("File saved as {} successfully!", filename));
+    Log::Success("ReceiveFile()", std::format("File saved as {} successfully!", filename));
     return true;
 }
 
@@ -296,6 +296,8 @@ void FileReceiver::CloseConnection() {
 }
 
 int main(int argc, char* argv[]) {
+
+    std::cout << std::endl;
 
     // Check if the correct arguments are passed
     if (argc != 2) {
