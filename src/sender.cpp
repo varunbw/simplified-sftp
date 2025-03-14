@@ -207,6 +207,22 @@ bool FileSender::EncryptAndSend(const std::vector<Byte>& plainFileData) {
         totalBytesSent += chunkSize;
     }
 
+    /*
+        The following code is equivalent to the above while loop, but is more readable
+        It does not send the file in chunks, instead opting to send it out all at once
+
+        This is not recommended for operation however, as it can lead to memory issues
+
+        Still, if you feel like the above loop is too complicated, you can use this instead
+    */
+    /* 
+        int sentBytes = send(socketFD, encryptedData.data(), encryptedData.size(), 0);
+        if (sentBytes < 0) {
+            Log::Error("EncryptAndSend()", "Error sending encrypted file");
+            return false;
+        }
+    */
+
     return true;
 }
 

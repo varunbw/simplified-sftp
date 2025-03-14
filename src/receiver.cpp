@@ -158,7 +158,7 @@ bool FileReceiver::ReadFromClient(std::vector<Byte>& encryptedData) {
     }
 
     // Read the file data based on the file size
-    size_t bytesRead;
+    int bytesRead;
     size_t totalBytesRead = 0;
     std::string buffer(1024, '\0');
 
@@ -186,6 +186,23 @@ bool FileReceiver::ReadFromClient(std::vector<Byte>& encryptedData) {
         encryptedData.insert(encryptedData.end(), buffer.begin(), buffer.begin() + bytesRead);
         totalBytesRead += bytesRead;
     }
+
+    /*
+        The following code is equivalent to the above while loop, but is more readable
+        It does not read the file in chunks, instead opting to read it out all at once
+
+        This is not recommended for operation however, as it can lead to memory issues
+        Still, if you feel like the above loop is too complicated, you can use this instead
+    */
+    /* 
+        bytesRead = read(clientSocket, &buffer[0], fileSize);
+        if (bytesRead < 0) {
+            Log::Error("ReadFromClient()", "Error reading file data");
+            return false;
+        }
+        totalBytesRead = bytesRead;
+        encryptedData.insert(encryptedData.end(), buffer.begin(), buffer.begin() + bytesRead);
+    */ 
 
     // Verify that the file data was read correctly
     if (totalBytesRead != fileSize) {
