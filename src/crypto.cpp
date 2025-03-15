@@ -257,4 +257,32 @@ namespace Crypto {
         return true;
     }
     */
+
+    /*
+        Basic hash function that calculates a simple hash of the data
+        This is not a secure hash function and should not be used for any real-world applications
+        It's just an example to show how you can implement your own hash function
+
+        @param data: the data to be hashed
+        @param hashResult: the resulting hash
+        @return true (yes, its that simple) :)
+    */
+    /*
+    bool BasicHashFunction(const std::vector<Byte>& data, std::vector<Byte>& hashResult) {
+
+        // Initialize the hash result with 8 bytes, and fill them with 0s
+        hashResult.resize(8);
+        fill(hashResult.begin(), hashResult.end(), 0);
+
+        // Do a simple hash calculation by adding the bytes together in a cyclic fashion
+        // Groups of 8 bytes are added together to form the hash
+        int hashIdx = 0;
+        for (Byte byte : data) {
+            hashResult[hashIdx++] += byte;
+            hashIdx %= 8;
+        }
+
+        return true;
+    }
+    */
 };
