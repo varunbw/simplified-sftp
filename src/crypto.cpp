@@ -3,6 +3,7 @@
 #include <iostream>
 #include <fstream>
 #include <vector>
+#include <array>
 #include <cstring>
 
 #include "../include/crypto.hpp"
@@ -56,8 +57,8 @@ namespace Crypto {
     */
     bool EncryptData(const std::vector<Byte>& plaintext, std::vector<Byte>& ciphertext) {
 
-        const std::vector<Byte>& key = preSharedKey;
-        const std::vector<Byte>& iv = preSharedIV;
+        const std::array<Byte, 32>& key = preSharedKey;
+        const std::array<Byte, 16>& iv = preSharedIV;
         
         // Create a new context
         EVP_CIPHER_CTX* ctx = EVP_CIPHER_CTX_new();
@@ -120,8 +121,8 @@ namespace Crypto {
     */
     bool DecryptData(const std::vector<Byte>& ciphertext, std::vector<Byte>& plaintext) {
 
-        const std::vector<Byte>& key = preSharedKey;
-        const std::vector<Byte>& iv = preSharedIV;
+        const std::array<Byte, 32>& key = preSharedKey;
+        const std::array<Byte, 16>& iv = preSharedIV;
         
         // Create a new context
         EVP_CIPHER_CTX* ctx = EVP_CIPHER_CTX_new();
