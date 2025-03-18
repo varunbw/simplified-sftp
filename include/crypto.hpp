@@ -2,7 +2,7 @@
 #define CRYPTO_SSFTP
 
 #include <vector>
-#include "util.hpp"
+#include "utils.hpp"
 
 namespace Crypto {
 
