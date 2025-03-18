@@ -9,3 +9,6 @@ build/
 # temporary files
 temp/
 temp.*
+
+# performance testing files
+perftest*
