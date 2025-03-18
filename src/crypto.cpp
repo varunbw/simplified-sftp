@@ -63,7 +63,7 @@ namespace Crypto {
         // Create a new context
         EVP_CIPHER_CTX* ctx = EVP_CIPHER_CTX_new();
         if (ctx == nullptr) {
-            Log::Error("Crypto::EncryptData()", "Error creating cipher context\n");
+            Log::Error("EncryptData()", "Error creating cipher context\n");
             return false;
         }
         
@@ -74,7 +74,7 @@ namespace Crypto {
         */
         int initStatus = EVP_EncryptInit_ex(ctx, EVP_aes_256_cbc(), NULL, key.data(), iv.data());
         if (initStatus != 1) {
-            Log::Error("Crypto::EncryptData()", "Error initializing encryption operation\n");
+            Log::Error("EncryptData()", "Error initializing encryption operation\n");
             EVP_CIPHER_CTX_free(ctx);
             return false;
         }
@@ -90,7 +90,7 @@ namespace Crypto {
         int len;
         int encryptionStatus = EVP_EncryptUpdate(ctx, ciphertext.data(), &len, plaintext.data(), plaintext.size());
         if (encryptionStatus != 1) {
-            Log::Error("Crypto::EncryptData()", "Error encrypting data\n");
+            Log::Error("EncryptData()", "Error encrypting data\n");
             EVP_CIPHER_CTX_free(ctx);
             return false;
         }
@@ -99,7 +99,7 @@ namespace Crypto {
         int ciphertextLen = len;
         int finalEncryptionStatus = EVP_EncryptFinal_ex(ctx, ciphertext.data() + len, &len);
         if (finalEncryptionStatus != 1) {
-            Log::Error("Crypto::EncryptData()", "Error encrypting final data\n");
+            Log::Error("EncryptData()", "Error encrypting final data\n");
             EVP_CIPHER_CTX_free(ctx);
             return false;
         }
@@ -127,14 +127,14 @@ namespace Crypto {
         // Create a new context
         EVP_CIPHER_CTX* ctx = EVP_CIPHER_CTX_new();
         if (ctx == nullptr) {
-            Log::Error("Crypto::DecryptData()", "Error creating cipher context\n");
+            Log::Error("DecryptData()", "Error creating cipher context\n");
             return false;
         }
         
         // Initialize the decryption operation with a cipher type, key, and IV
         int initStatus = EVP_DecryptInit_ex(ctx, EVP_aes_256_cbc(), NULL, key.data(), iv.data());
         if (initStatus != 1) {
-            Log::Error("Crypto::DecryptData()", "Error initializing decryption operation\n");
+            Log::Error("DecryptData()", "Error initializing decryption operation\n");
             EVP_CIPHER_CTX_free(ctx);
             return false;
         }
@@ -143,8 +143,8 @@ namespace Crypto {
         plaintext.resize(ciphertext.size());
 
         // Log the sizes of the ciphertext and plaintext
-        // Log::Info("Crypto::DecryptData()", "Ciphertext size: " + std::to_string(ciphertext.size()));
-        // Log::Info("Crypto::DecryptData()", "Plaintext size:  " + std::to_string(plaintext.size()));
+        // Log::Info("DecryptData()", "Ciphertext size: " + std::to_string(ciphertext.size()));
+        // Log::Info("DecryptData()", "Plaintext size:  " + std::to_string(plaintext.size()));
         
         /*
             Decrypts the ciphertext data
@@ -154,7 +154,7 @@ namespace Crypto {
         int len;
         int decryptionStatus = EVP_DecryptUpdate(ctx, plaintext.data(), &len, ciphertext.data(), ciphertext.size());
         if (decryptionStatus != 1) {
-            Log::Error("Crypto::DecryptData()", "Error decrypting data\n");
+            Log::Error("DecryptData()", "Error decrypting data\n");
             EVP_CIPHER_CTX_free(ctx);
             return false;
         }
@@ -164,7 +164,7 @@ namespace Crypto {
         int plaintextLen = len;
         int finalDecryptionStatus = EVP_DecryptFinal_ex(ctx, plaintext.data() + len, &len);
         if (finalDecryptionStatus != 1) {
-            Log::Error("Crypto::DecryptData()", "Error decrypting final data\n");
+            Log::Error("DecryptData()", "Error decrypting final data\n");
             EVP_CIPHER_CTX_free(ctx);
             return false;
         }
@@ -187,14 +187,14 @@ namespace Crypto {
         // Create a context for the hash operation
         EVP_MD_CTX* ctx = EVP_MD_CTX_new();
         if (ctx == nullptr) {
-            Log::Error("Crypto::CalculateHash", "Error creating hash context");
+            Log::Error("CalculateHash()", "Error creating hash context");
             return false;
         }
 
         // Initialize the hash operation with SHA-256
         int initStatus = EVP_DigestInit_ex(ctx, EVP_sha256(), NULL);
         if (initStatus != 1) {
-            Log::Error("Crypto::CalculateHash", "Error initializing hash operation");
+            Log::Error("CalculateHash()", "Error initializing hash operation");
             EVP_MD_CTX_free(ctx);
             return false;
         }
@@ -202,7 +202,7 @@ namespace Crypto {
         // Provide the data to be hashed
         int updateStatus = EVP_DigestUpdate(ctx, data.data(), data.size());
         if (updateStatus != 1) {
-            Log::Error("Crypto::CalculateHash", "Error updating hash operation");
+            Log::Error("CalculateHash()", "Error updating hash operation");
             EVP_MD_CTX_free(ctx);
             return false;
         }
@@ -211,7 +211,7 @@ namespace Crypto {
         unsigned int hashLen;
         int finalStatus = EVP_DigestFinal_ex(ctx, hash.data(), &hashLen);
         if (finalStatus != 1) {
-            Log::Error("Crypto::CalculateHash", "Error finalizing hash operation");
+            Log::Error("CalculateHash()", "Error finalizing hash operation");
             EVP_MD_CTX_free(ctx);
             return false;
         }
