@@ -312,24 +312,71 @@ int main(int argc, char* argv[]) {
 
     std::cout << std::endl;
 
-    // Check if the correct arguments are passed
-    if (argc != 2) {
-        Log::Error("main()", std::format("Usage: {} <file_name_to_send>", argv[0]));
-        return 1;
-    }
-
-    // 127.0.0.1 - localhost
+    // Configuration
     const std::string serverIP("127.0.0.1");
     constexpr int serverPort = 8080;
 
-    FileSender sender(serverIP, serverPort);
-    
-    std::string fileToSend = argv[1];
+    /*
+        If 3 paramters are provided, they are in the following format
+        argv[1] = number of files
+        argv[2] = file name
 
-    if (sender.ConnectToServer() == false)
-        return 1;
-    if (sender.SendFile(fileToSend) == false)
-        return 1;
+        argv[1] is essentially ignored if argv[2] is provided, as it is
+        assumed that if argv[2] is provided, you want to send only one file, 
+        and not a number of files
+    */
+    if (argc == 3) {
+        std::string fileToSend = argv[2];
+
+        FileSender sender(serverIP, serverPort);
+        if (sender.ConnectToServer() == false)
+            return 1;
+        if (sender.SendFile(fileToSend) == false)
+            return 1;
+
+        return 0;
+    }
+
+    /*
+        If 2 paramters are provided, they are in the following format
+        argv[1] = number of files
+
+        The user wants to send a number of files, and not just one file
+        The files are named `perftest_<number>KB.txt`, where <number> is the
+        number of files to send
+        They are located in the `tests/send` directory
+    */
+    else if (argc == 2) {
+
+        int numberOfFiles = 0;
+        try {
+            numberOfFiles = std::stoi(argv[1]);
+        }
+        catch (std::invalid_argument) {
+            Log::Error("main()", std::format("Could not convert {} to int", numberOfFiles));
+        }
+
+        FileSender sender(serverIP, serverPort);
+        if (sender.ConnectToServer() == false)
+            return 1;
+
+        for (int i = 1; i <= numberOfFiles; i++) {
+            const std::string fileToSend = std::format("tests/send/perftest_{}KB.txt", i);
+
+            if (sender.SendFile(fileToSend) == false)
+                return 1;
+        }
+
+        return 0;
+    }
+    /*
+        If neither of the above conditions are met, the user has provided
+        invalid arguments, and the program will exit with an error
+    */
+    else {
+        Log::Error("main()", std::format("Usage: {} <number_of_files> <file_name_(if only one file)>", argv[0]));
+        return -1;
+    }
 
     return 0;
 }
