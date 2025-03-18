@@ -1,102 +1,18 @@
+
 InitializeServer(): Server listening on port 8080
-ReceiveFile(): Receiving file from client...
-
-ReadFromClient():                   Reading - 2.217400 ms
-ReceiveFile():                   Decryption - 1.854200 ms
-ReadAndVerifyHash():           Reading hash - 0.003800 ms
-ReadAndVerifyHash():       Calculating hash - 0.150100 ms
-ReceiveFile():              Writing to file - 0.951200 ms
-ReceiveFile(): Complete receiving operation - 5.286100 ms
-
-[1;32m[SUCCESS] ReceiveFile(): File saved as ../tests/recv/perftest_1KB.txt successfully!
-[0mReceiveFile(): Receiving file from client...
-
-ReadFromClient():                   Reading - 0.018600 ms
-ReceiveFile():                   Decryption - 0.009900 ms
-ReadAndVerifyHash():           Reading hash - 0.003300 ms
-ReadAndVerifyHash():       Calculating hash - 0.005700 ms
-ReceiveFile():              Writing to file - 0.782700 ms
-ReceiveFile(): Complete receiving operation - 0.851800 ms
-
-[1;32m[SUCCESS] ReceiveFile(): File saved as ../tests/recv/perftest_2KB.txt successfully!
-[0mReceiveFile(): Receiving file from client...
-
-ReadFromClient():                   Reading - 0.014300 ms
-ReceiveFile():                   Decryption - 0.006000 ms
-ReadAndVerifyHash():           Reading hash - 0.001400 ms
-ReadAndVerifyHash():       Calculating hash - 0.003900 ms
-ReceiveFile():              Writing to file - 0.592800 ms
-ReceiveFile(): Complete receiving operation - 0.638800 ms
-
-[1;32m[SUCCESS] ReceiveFile(): File saved as ../tests/recv/perftest_3KB.txt successfully!
-[0mReceiveFile(): Receiving file from client...
-
-ReadFromClient():                   Reading - 0.017100 ms
-ReceiveFile():                   Decryption - 0.005400 ms
-ReadAndVerifyHash():           Reading hash - 0.001300 ms
-ReadAndVerifyHash():       Calculating hash - 0.004300 ms
-ReceiveFile():              Writing to file - 0.586800 ms
-ReceiveFile(): Complete receiving operation - 0.638500 ms
-
-[1;32m[SUCCESS] ReceiveFile(): File saved as ../tests/recv/perftest_4KB.txt successfully!
-[0mReceiveFile(): Receiving file from client...
-
-ReadFromClient():                   Reading - 0.026700 ms
-ReceiveFile():                   Decryption - 0.008400 ms
-ReadAndVerifyHash():           Reading hash - 0.003000 ms
-ReadAndVerifyHash():       Calculating hash - 0.006200 ms
-ReceiveFile():              Writing to file - 0.716300 ms
-ReceiveFile(): Complete receiving operation - 0.791800 ms
-
-[1;32m[SUCCESS] ReceiveFile(): File saved as ../tests/recv/perftest_5KB.txt successfully!
-[0mReceiveFile(): Receiving file from client...
-
-ReadFromClient():                   Reading - 0.030600 ms
-ReceiveFile():                   Decryption - 0.007800 ms
-ReadAndVerifyHash():           Reading hash - 0.002800 ms
-ReadAndVerifyHash():       Calculating hash - 0.006600 ms
-ReceiveFile():              Writing to file - 0.573900 ms
-ReceiveFile(): Complete receiving operation - 0.655600 ms
-
-[1;32m[SUCCESS] ReceiveFile(): File saved as ../tests/recv/perftest_6KB.txt successfully!
-[0mReceiveFile(): Receiving file from client...
-
-ReadFromClient():                   Reading - 0.032100 ms
-ReceiveFile():                   Decryption - 0.009100 ms
-ReadAndVerifyHash():           Reading hash - 0.001500 ms
-ReadAndVerifyHash():       Calculating hash - 0.007300 ms
-ReceiveFile():              Writing to file - 0.608400 ms
-ReceiveFile(): Complete receiving operation - 0.685600 ms
-
-[1;32m[SUCCESS] ReceiveFile(): File saved as ../tests/recv/perftest_7KB.txt successfully!
-[0mReceiveFile(): Receiving file from client...
-
-ReadFromClient():                   Reading - 0.030400 ms
-ReceiveFile():                   Decryption - 0.008900 ms
-ReadAndVerifyHash():           Reading hash - 0.001700 ms
-ReadAndVerifyHash():       Calculating hash - 0.006800 ms
-ReceiveFile():              Writing to file - 0.578200 ms
-ReceiveFile(): Complete receiving operation - 0.650400 ms
-
-[1;32m[SUCCESS] ReceiveFile(): File saved as ../tests/recv/perftest_8KB.txt successfully!
-[0mReceiveFile(): Receiving file from client...
-
-ReadFromClient():                   Reading - 0.033200 ms
-ReceiveFile():                   Decryption - 0.008900 ms
-ReadAndVerifyHash():           Reading hash - 0.001600 ms
-ReadAndVerifyHash():       Calculating hash - 0.008200 ms
-ReceiveFile():              Writing to file - 0.387500 ms
-ReceiveFile(): Complete receiving operation - 0.495000 ms
-
-[1;32m[SUCCESS] ReceiveFile(): File saved as ../tests/recv/perftest_9KB.txt successfully!
-[0mReceiveFile(): Receiving file from client...
-
-ReadFromClient():                   Reading - 0.035400 ms
-ReceiveFile():                   Decryption - 0.007100 ms
-ReadAndVerifyHash():           Reading hash - 0.001500 ms
-ReadAndVerifyHash():       Calculating hash - 0.007400 ms
-ReceiveFile():              Writing to file - 0.418300 ms
-ReceiveFile(): Complete receiving operation - 0.490900 ms
-
-[1;32m[SUCCESS] ReceiveFile(): File saved as ../tests/recv/perftest_10KB.txt successfully!
+[1;32m[SUCCESS] ReceiveFile(): File saved as tests/recv/perftest_1KB.txt successfully!
+[0m[1;32m[SUCCESS] ReceiveFile(): File saved as tests/recv/perftest_2KB.txt successfully!
+[0m[1;32m[SUCCESS] ReceiveFile(): File saved as tests/recv/perftest_3KB.txt successfully!
+[0m[1;32m[SUCCESS] ReceiveFile(): File saved as tests/recv/perftest_4KB.txt successfully!
+[0m[1;32m[SUCCESS] ReceiveFile(): File saved as tests/recv/perftest_5KB.txt successfully!
+[0m[1;32m[SUCCESS] ReceiveFile(): File saved as tests/recv/perftest_6KB.txt successfully!
+[0m[1;32m[SUCCESS] ReceiveFile(): File saved as tests/recv/perftest_7KB.txt successfully!
+[0m[1;32m[SUCCESS] ReceiveFile(): File saved as tests/recv/perftest_8KB.txt successfully!
+[0m[1;32m[SUCCESS] ReceiveFile(): File saved as tests/recv/perftest_9KB.txt successfully!
+[0m[1;32m[SUCCESS] ReceiveFile(): File saved as tests/recv/perftest_10KB.txt successfully!
+[0m[1;32m[SUCCESS] ReceiveFile(): File saved as tests/recv/perftest_11KB.txt successfully!
+[0m[1;32m[SUCCESS] ReceiveFile(): File saved as tests/recv/perftest_12KB.txt successfully!
+[0m[1;32m[SUCCESS] ReceiveFile(): File saved as tests/recv/perftest_13KB.txt successfully!
+[0m[1;32m[SUCCESS] ReceiveFile(): File saved as tests/recv/perftest_14KB.txt successfully!
+[0m[1;32m[SUCCESS] ReceiveFile(): File saved as tests/recv/perftest_15KB.txt successfully!
 [0m
