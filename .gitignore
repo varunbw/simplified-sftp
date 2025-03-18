@@ -12,3 +12,6 @@ temp.*
 
 # performance testing files
 perftest*
+
+# logs
+logs/
