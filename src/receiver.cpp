@@ -6,7 +6,11 @@
 #include <netinet/in.h>
 #include <unistd.h>
 
-#include "../include/main.hpp"
+#include "../include/crypto.hpp"
+#include "../include/logger.hpp"
+#include "../include/perf.hpp"
+#include "../include/utils.hpp"
+
 
 class FileReceiver {
 private:

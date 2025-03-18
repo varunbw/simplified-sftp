@@ -3,6 +3,7 @@
 #include <format>
 
 #include "../include/logger.hpp"
+#include "../include/utils.hpp"
 
 namespace Log {
     void Error(const std::string& functionName, const std::string& message) {
