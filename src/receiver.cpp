@@ -229,8 +229,9 @@ bool FileReceiver::ReadAndVerifyHash(std::vector<Byte>& decryptedData) {
     }
 
     // Calculate hash of decrypted data
-    std::vector<Byte> hash = Crypto::CalculateHash(decryptedData);
-    if (hash.empty()) {
+    std::vector<Byte> hash(32);
+    bool hashStatus = Crypto::CalculateHash(decryptedData, hash);
+    if (hashStatus == false) {
         Log::Error("ReadAndVerifyHash()", "Error calculating hash");
         return false;
     }

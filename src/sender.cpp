@@ -235,8 +235,9 @@ bool FileSender::EncryptAndSend(const std::vector<Byte>& plainFileData) {
 bool FileSender::CalculateHashAndSend(const std::vector<Byte>& data) {
 
     // Calculate hash of the file
-    std::vector<Byte> hash = Crypto::CalculateHash(data);
-    if (hash.empty()) {
+    std::vector<Byte> hash(32, 0);
+    bool hashStatus = Crypto::CalculateHash(data, hash);
+    if (hashStatus == false) {
         Log::Error("CalculateHashAndSend()", "Error calculating hash");
         return false;
     }

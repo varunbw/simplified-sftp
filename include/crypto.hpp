@@ -55,10 +55,11 @@ namespace Crypto {
 
     /*
         Calculates the SHA-256 hash of the given data
-        @param data: the data to be hashed
-        @return the SHA-256 hash of the data
+        @param data: data to be hashed
+        @param hash: hash of the data
+        @return If operation was successful or not
     */
-    std::vector<Byte> CalculateHash(const std::vector<Byte>& data);
+    bool CalculateHash(const std::vector<Byte>& data, std::vector<Byte>& hash);
 };
 
 #endif

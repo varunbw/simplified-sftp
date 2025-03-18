@@ -179,15 +179,16 @@ namespace Crypto {
 
     /*
         Calculates the SHA-256 hash of the given data
-        @param data: the data to be hashed
-        @return the SHA-256 hash of the data
+        @param data: data to be hashed
+        @param hash: hash of the data
+        @return If operation was successful or not
     */
-    std::vector<Byte> CalculateHash(const std::vector<Byte>& data) {
+    bool CalculateHash(const std::vector<Byte>& data, std::vector<Byte>& hash) {
         // Create a context for the hash operation
         EVP_MD_CTX* ctx = EVP_MD_CTX_new();
         if (ctx == nullptr) {
             Log::Error("Crypto::CalculateHash", "Error creating hash context");
-            return {};
+            return false;
         }
 
         // Initialize the hash operation with SHA-256
@@ -195,7 +196,7 @@ namespace Crypto {
         if (initStatus != 1) {
             Log::Error("Crypto::CalculateHash", "Error initializing hash operation");
             EVP_MD_CTX_free(ctx);
-            return {};
+            return false;
         }
 
         // Provide the data to be hashed
@@ -203,24 +204,22 @@ namespace Crypto {
         if (updateStatus != 1) {
             Log::Error("Crypto::CalculateHash", "Error updating hash operation");
             EVP_MD_CTX_free(ctx);
-            return {};
+            return false;
         }
 
         // Finalize the hash operation and retrieve the hash value
-        std::vector<Byte> hash(EVP_MD_size(EVP_sha256()));
         unsigned int hashLen;
-
         int finalStatus = EVP_DigestFinal_ex(ctx, hash.data(), &hashLen);
         if (finalStatus != 1) {
             Log::Error("Crypto::CalculateHash", "Error finalizing hash operation");
             EVP_MD_CTX_free(ctx);
-            return {};
+            return false;
         }
 
         // Free the context
         EVP_MD_CTX_free(ctx);
 
-        return hash;
+        return true;
     }
 
 
