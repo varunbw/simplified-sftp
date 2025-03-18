@@ -118,6 +118,8 @@ bool FileSender::LoadFileIntoVector(const std::string& filename, std::vector<Byt
     // istreambuf_iterator reads the file contents as a stream of bytes
     data = std::vector<Byte>((std::istreambuf_iterator<char>(infile)), std::istreambuf_iterator<char>());
 
+    Log::Info("SendFile()", std::format("Size of file: {} bytes", data.size()));
+
     return true;
 }
 
@@ -176,6 +178,8 @@ bool FileSender::EncryptAndSend(const std::vector<Byte>& plainFileData) {
         Log::Error("EncryptAndSend()", "Error sending file size");
         return false;
     }
+
+    Log::Info("EncryptAndSend()", std::format("Size of encrypted data: {} bytes", fileSize));
     
     // Send the encrypted file contents to the server in 1024 byte chunks
     size_t totalBytesSent = 0;
@@ -236,7 +240,7 @@ bool FileSender::SendFile(const std::string& filename) {
 
     auto startDuration = TimeNow();
     Log::Info("SendFile()", std::format("Sending file {} to server...\n", filename));
-    
+
     // -- Step 1 --
     // Load the file into a vector
     auto loadingFileDuration = TimeNow();
@@ -247,7 +251,6 @@ bool FileSender::SendFile(const std::string& filename) {
         return false;
     }
     Log::Info("SendFile()", std::format("                Loading file - {}", TimeElapsed(loadingFileDuration, TimeNow(), TimePrecision::MILLISECONDS, 1)));
-    
     
     // -- Step 2 --
     // Encrypt and send the file to the server
