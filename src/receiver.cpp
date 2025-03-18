@@ -25,7 +25,7 @@
 
     However, normally, the client AND the server can do both; send and receive files.
     I have not called the class `Server` for this very reason, a client can receive files
-    as well. The class `FileSender` is not called `Client` for the same reason.
+    as well. The class `FileReceiver` is not called `Client` for the same reason.
     
     In this implementation, the client is the sender, and the server is the receiver.
     Get used to it for this program, but remember that this is not the case in a real SFTP.
@@ -313,27 +313,105 @@ void FileReceiver::CloseConnection() {
     return;
 }
 
+
 int main(int argc, char* argv[]) {
 
     std::cout << std::endl;
 
-    // Check if the correct arguments are passed
-    if (argc != 2) {
-        Log::Error("main()", std::format("Usage: {} <file_name_to_save_as>", argv[0]));
-        return 1;
+    // Configuration
+    constexpr int serverPort = 8080;
+
+    if (argc < 3) {
+        Log::Error("main()", std::format("Usage: {} [-f <filename>] [-n <number_of_files>]", argv[0]));
+        return -1;
     }
 
-    constexpr int serverPort = 8080;
+    std::string flag = argv[1];
     FileReceiver receiver(serverPort);
-
-    std::string fileNameToSaveAs = argv[1];
 
     if (receiver.InitializeServer() == false)
         return 1;
     if (receiver.AcceptConnection() == false)
         return 1;
-    if (receiver.ReceiveFile(fileNameToSaveAs) == false)
-        return 1;
+
+    /*
+        The server is now ready to receive files, and the
+        "configuration" part of the protocol is done
+
+        After this point, all the code is just meant to show you
+        how to receive files, and is not part of the protocol per se
+
+        The only line you should know is
+        `receiver.ReceiveFile(filename)`
+        which is the function that, well..., receives the file (ik, shocker)
+
+        The rest of the code is just to show you how to use the class,
+        and you can just skip straight to the ReceiveFile() function
+        if you want to
+    */
+
+    /*
+        argv[1] = -f
+        argv[2] = file name
+
+        The user wants to receive a single file, and not a number of files
+    */
+    if (flag == "-f") {
+        if (argc < 3) {
+            Log::Error("main()", "Missing filename after -f");
+            return -1;
+        }
+
+        std::string fileNameToSaveAs = argv[2];
+        if (receiver.ReceiveFile(fileNameToSaveAs) == false)
+            return 1;
+    }
+
+    /*
+        For the sake of understanding, you should first try the above option
+        which is sending a single file
+        Then, try this option which is sending multiple files
+
+        There is no need for you to learn how to send multiple files, and you
+        can just stop here
+        But if you want to learn how to send multiple files, then carry on
+    */
+    /*
+        argv[1] = -n
+        argv[2] = number of files
+
+        The user wants to receive a number of files, and not a single file
+    */
+    else if (flag == "-n") {
+        if (argc < 3) {
+            Log::Error("main()", "Missing number of files after -n");
+            return -1;
+        }
+    
+        int numberOfFiles = 0;
+        try {
+            numberOfFiles = std::stoi(argv[2]);
+        }
+        catch (std::invalid_argument&) {
+            Log::Error("main()", "Invalid number of files");
+            return -1;
+        }
+    
+        for (int i = 1; i <= numberOfFiles; i++) {
+            const std::string fileNameToSaveAs = std::format("tests/send/perftest_{}KB.txt", i);
+            if (receiver.ReceiveFile(fileNameToSaveAs) == false)
+                return 1;
+        }
+    }
+
+    /*
+        The user has provided an unknown flag
+        Print an error message and exit
+    */
+    else {
+        Log::Error("main()", std::format("Unknown flag {}", flag));
+        return -1;
+    }
 
     return 0;
 }
