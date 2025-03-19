@@ -377,7 +377,7 @@ int main(int argc, char* argv[]) {
         }
 
         for (int j = 1; j <= numberOfFiles; j++) {
-            const std::string fileToSend = std::format("tests/send/perftest_{}KB.txt", j);
+            const std::string fileToSend = std::format("tests/send/perftest_{}MB.txt", j);
             if (sender.SendFile(fileToSend) == false)
                 return 1;
         }

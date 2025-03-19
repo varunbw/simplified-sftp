@@ -1,5 +1,8 @@
 cmake_minimum_required(VERSION 3.10)
 
+# Place executables in the project root
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}")
+
 # Set the project name
 project(SimplifiedSFTP)
 
@@ -9,6 +12,9 @@ set(CMAKE_CXX_STANDARD_REQUIRED True)
 
 # Include directories
 include_directories(include)
+
+# Add debug info
+add_compile_options(-g)
 
 # Add the OpenSSL library
 find_package(OpenSSL REQUIRED)

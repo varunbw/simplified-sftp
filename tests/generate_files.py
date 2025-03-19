@@ -11,17 +11,17 @@ import os
 import random
 
 def main():
-    num_of_files = 15
+    num_of_files = 100
     for file_size in range(1, num_of_files + 1):
         
-        filename = f"perftest_{file_size}KB.txt"
+        filename = f"perftest_{file_size}MB.txt"
         file_path = os.path.join("./send/", filename)
 
         with open(file_path, "w") as file:
             data = ''.join(
                 random.choices(
                     'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789',
-                    k=file_size * 1024
+                    k=file_size * 1024 * 1024
                     )
                 )
 

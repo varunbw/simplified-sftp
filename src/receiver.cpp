@@ -378,7 +378,7 @@ int main(int argc, char* argv[]) {
         }
     
         for (int i = 1; i <= numberOfFiles; i++) {
-            const std::string fileNameToSaveAs = std::format("tests/recv/perftest_{}KB.txt", i);
+            const std::string fileNameToSaveAs = std::format("tests/recv/perftest_{}MB.txt", i);
             if (receiver.ReceiveFile(fileNameToSaveAs) == false)
                 return 1;
         }
