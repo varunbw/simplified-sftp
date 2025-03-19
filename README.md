@@ -2,11 +2,11 @@
 
 Project is WIP, I'll be refining it over time.
 
+> You are now on the `anaylsis` branch. The protocol is the same as in the `main` branch, the only difference being that there is more code for performance profiling (such as how long a function takes to run). Since it is not needed for the protocol, it is not included in the `main` branch.
+
 This is a barebones version of the Secure File Transfer Protocol (SFTP), which is meant for educational purposes. The OpenSSL library is used for encryption and decryption of files.
 
 Unlike a proper implementation of S-SFTP, this version does not support directories, file attributes, or file permissions. It is also not optimized for performance. The goal of this project is to provide a simple example of how to use the OpenSSL library (or just about anything else) to encrypt and decrypt files. A lot of the code is not exactly what one would call best practice when dealing with files, networking, and security. Emphasis is put on its simplicity.
-
-Even for a "simplfied" version, the source code might look complex to some (aah C++). However, most of it is just error handling, and explanatory comments. If you remove those, its actually quite simple.
 
 ## Prerequisites
 - CMake
@@ -40,17 +40,26 @@ cmake ..
 make
 ```
 
+The executables are placed in the root directory of the project. You can run the server and client from there.
+
+Note: Ensure that the OpenSSL library is installed and accessible in your system's library path.
+
 ## Running the program
 
 1. Run the server:
 ```bash
-./receiver.out <file_name_to_save_as>
+./receiver.out [-f <file_name_to_receive>] [-n <number_of_files_to_receive>]
 ```
+
+- `-f` Specify name of file to save as
+- `-n` Specify number of files to receive, this is batch processing, see [receiver.cpp](src/receiver.cpp) for more details.
 
 2. Run the client:
 ```bash
-./sender.out <file_name_to_send>
+./sender.out [-f <file_name_to_send>] [-n <number_of_files_to_send>]
 ```
+- `-f` Specify name of file to send
+- `-n` Specify number of files to send, this is batch processing, see [sender.cpp](src/sender.cpp) for more details.
 
 ## Configuration
 
