@@ -290,32 +290,106 @@ void FileSender::CloseConnection() {
 
 int main(int argc, char* argv[]) {
 
-    // if (argc != 2) {
-    //     Log::Error("main()", std::format("Usage: {} <file_name_to_send>", argv[0]));
-    //     return 1;
-    // }
+    std::cout << std::endl;
 
-    const std::string IP("127.0.0.1");
-    constexpr int port = 8080;
+    // Configuration
+    const std::string serverIP("127.0.0.1");
+    constexpr int serverPort = 8080;
 
-    FileSender sender(IP, port);
+    // Handle flags
+    if (argc < 3) {
+        Log::Error("main()", std::format("Usage: {} [-f <filename>] [-n <number_of_files>]", argv[0]));
+        return -1;
+    }
 
-    // std::string fileNameToSend = argv[1];
-
+    // Connect to the server
+    FileSender sender(serverIP, serverPort);
     if (sender.ConnectToServer() == false)
         return 1;
 
-    if (argc != 2) {
-        Log::Error("main()", std::format("Usage: {} <number_of_files>", argv[0]));
-        return 1;
+    std::string flag = argv[1];
+
+    /*
+        The client is now ready to send files, and the
+        "configration" is done
+
+        After this point, all the code is just meant to show you
+        how to send files, and is not part of the protocol per se
+
+        The only line you should know is
+        `sender.SendFile(filename)`
+        which is the function that, well..., sends the file (ik, shocker again)
+
+        The rest of the code is just to show you how to use the class,
+        and you can just skip straight to the SendFile() function
+        if you want to
+    */
+
+    /*
+        argv[1] = -f
+        argv[2] = file name
+
+        The user wants to send a single file, and not a number of files
+    */
+    if (flag == "-f") {
+        if (argc < 3) {
+            Log::Error("main()", "Missing file name after -f");
+            return -1;
+        }
+
+        std::string fileToSend = argv[2];
+        if (sender.SendFile(fileToSend) == false)
+            return 1;
+        return 0;
     }
 
-    const int numberOfFiles = std::stoi(argv[1]);
+    /*
+        For the sake of understanding, you should first try the above option
+        which is sending a single file
+        Then, try this option which is sending multiple files
 
-    for (int i = 1; i <= numberOfFiles; i++) {
-        const std::string fileNameToSaveAs = std::format("../tests/send/perftest_{}KB.txt", i);
-        if (sender.SendFile(fileNameToSaveAs) == false)
-            return 1;
+        There is no need for you to learn how to send multiple files, and you
+        can just stop here
+        But if you want to learn how to send multiple files, then carry on
+    */
+    /*
+        argv[1] = -n
+        argv[2] = number of files
+
+        The user wants to send a number of files, and not just one file
+        The files are named `perftest_<number>KB.txt`, where <number> is the
+        number of files to send
+        The files are located in the `tests/send` directory
+    */
+    else if (flag == "-n") {
+        if (argc < 3) {
+            Log::Error("main()", "Missing number of files after -n");
+            return -1;
+        }
+
+        int numberOfFiles = 0;
+        try {
+            numberOfFiles = std::stoi(argv[2]);
+        }
+        catch (std::invalid_argument&) {
+            Log::Error("main()", "Invalid number of files");
+            return -1;
+        }
+
+        for (int j = 1; j <= numberOfFiles; j++) {
+            const std::string fileToSend = std::format("tests/send/perftest_{}KB.txt", j);
+            if (sender.SendFile(fileToSend) == false)
+                return 1;
+        }
+        return 0;
+    }
+    /*
+        The user has provided an invalid flag
+        Print usage and exit
+    */
+    else {
+        Log::Error("main()", std::format("Unknown flag {}", flag));
+        return -1;
     }
 
     return 0;
