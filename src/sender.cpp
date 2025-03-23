@@ -196,7 +196,7 @@ bool FileSender::EncryptAndSend(const std::vector<Byte>& plainFileData) {
     size_t totalSize = encryptedData.size();
     while (totalBytesSent < totalSize) {
         // Send the min amongst 1024 bytes, or how much ever is left to send
-        size_t chunkSize = std::min(static_cast<size_t>(1024), totalSize - totalBytesSent);
+        size_t chunkSize = std::min(static_cast<size_t>(32768), totalSize - totalBytesSent);
 
         int sentBytes = send(socketFD, encryptedData.data() + totalBytesSent, chunkSize, 0);
         if (sentBytes < 0) {

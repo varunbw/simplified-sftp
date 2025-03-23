@@ -160,7 +160,7 @@ bool FileReceiver::ReadFromClient(std::vector<Byte>& encryptedData) {
     // Read the file data based on the file size
     int bytesRead;
     size_t totalBytesRead = 0;
-    std::string buffer(1024, '\0');
+    std::string buffer(32768, '\0');
 
     // Main loop to read file data
     while (totalBytesRead < fileSize) {
