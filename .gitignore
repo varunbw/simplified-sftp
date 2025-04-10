@@ -10,8 +10,14 @@ build/
 temp/
 temp.*
 
+# example transfer files
+tests/*.txt
+
 # performance testing files
 perftest*
 
 # logs
 logs/
+
+# paper
+paper/
